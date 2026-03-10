@@ -23,30 +23,30 @@ title: "TODO - Your title"
 abbrev: "TODO - Abbreviation"
 category: info
 
-docname: draft-todo-yourname-protocol-latest
+docname: draft-dh-akem-extension
 submissiontype: IETF # also: "independent", "editorial", "IAB", or "IRTF"
 number:
 date:
 consensus: true
 v: 3
 area: AREA
-workgroup: WG Working Group
+workgroup: HPKE
 keyword:
-  - next generation
-  - unicorn
-  - sparkling distributed ledger
 venue:
-  group: WG
+  group: HPKE
   type: Working Group
-  mail: WG@example.com
-  arch: https://example.com/WG
-  github: USER/REPO
-  latest: https://example.com/LATEST
+  mail: hpke@ietf.org
+  github: cfm/draft-dh-akem-extension
 
 author:
-  - fullname: Your Name Here
-    organization: Your Organization Here
-    email: your.email@example.com
+  - fullname: Cory Myers
+    role: editor
+    organization: Freedom of the Press Foundation
+    email: cfm@acm.org
+  - fullname: Rowen S.
+    role: editor
+    organization: Freedom of the Press Foundation
+    email: ro@freedom.press
 
 normative:
 
