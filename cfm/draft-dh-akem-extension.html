@@ -8,7 +8,9 @@
 <meta content="Cory Myers" name="author">
 <meta content="Rowen S." name="author">
 <meta content="
-       Revision -03 of   removed  mode_auth  (0x02) and
+        is a standards-track Internet-Draft that
+supersedes the informational  . Its revision -03, submitted
+to the IESG for publication, removed  mode_auth  (0x02) and
  mode_auth_psk  (0x03). This document restores those two modes as a
 strict extension, requiring only the addition of  AuthEncap / AuthDecap 
 to the DHKEM, four Setup functions, and an update to  VerifyPSKInputs . 
@@ -1104,7 +1106,9 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <h1 id="title">DH-AKEM: Authenticated Modes for HPKE</h1>
 <section id="section-abstract">
       <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
-<p id="section-abstract-1">Revision -03 of <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span> removed <code>mode_auth</code> (0x02) and
+<p id="section-abstract-1"><span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span> is a standards-track Internet-Draft that
+supersedes the informational <span>[<a href="#RFC9180" class="cite xref">RFC9180</a>]</span>. Its revision -03, submitted
+to the IESG for publication, removed <code>mode_auth</code> (0x02) and
 <code>mode_auth_psk</code> (0x03). This document restores those two modes as a
 strict extension, requiring only the addition of <code>AuthEncap</code>/<code>AuthDecap</code>
 to the DHKEM, four Setup functions, and an update to <code>VerifyPSKInputs</code>.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
@@ -1245,18 +1249,19 @@ contribution to the DHKEM key derivation.<a href="#section-abstract-2" class="pi
       <h2 id="name-introduction">
 <a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
       </h2>
-<p id="section-1-1"><span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span> revision -03 removed <code>mode_auth</code> and
-<code>mode_auth_psk</code> to reduce the surface of the core specification.
-However, many protocol designs require an authenticated key encapsulation
-mechanism (AKEM) — a KEM whose shared secret is implicitly bound to the
-sender's static private key — without requiring a full authenticated
-encryption context. The DHKEM construction in <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span>
-already contains all the primitives needed: <code>AuthEncap</code> computes a
-static-static DH value <code>DH(skS, pkR)</code> alongside the ephemeral-static
-value and mixes both into the key derivation, binding the output to the
-sender's key pair.<a href="#section-1-1" class="pilcrow">¶</a></p>
-<p id="section-1-2">This document extends <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span> revision -03 by restoring
-<code>mode_auth</code> and <code>mode_auth_psk</code> with minimal additions, then defines
+<p id="section-1-1"><span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span> is the standards-track successor to the
+informational <span>[<a href="#RFC9180" class="cite xref">RFC9180</a>]</span>. Its revision -03, submitted to the IESG for
+publication, removed <code>mode_auth</code> and <code>mode_auth_psk</code> to reduce the
+surface of the core specification. However, many protocol designs require
+an authenticated key encapsulation mechanism (AKEM) — a KEM whose shared
+secret is implicitly bound to the sender's static private key — without
+requiring a full authenticated encryption context. The DHKEM construction
+in <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span> already contains all the primitives needed:
+<code>AuthEncap</code> computes a static-static DH value <code>DH(skS, pkR)</code> alongside
+the ephemeral-static value and mixes both into the key derivation,
+binding the output to the sender's key pair.<a href="#section-1-1" class="pilcrow">¶</a></p>
+<p id="section-1-2">This document extends <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span> by restoring <code>mode_auth</code>
+and <code>mode_auth_psk</code> with minimal additions, then defines
 DH-AKEM as named profiles of those modes. DH-AKEM-Hybrid uses
 <code>mode_auth_psk</code> with the shared secret of a post-quantum KEM
 encapsulation as the PSK, achieving hybrid PQ/T confidentiality through
@@ -1314,10 +1319,12 @@ procedure in <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpk
 <a href="#section-3.1" class="section-number selfRef">3.1. </a><a href="#name-mode-identifiers" class="section-name selfRef">Mode Identifiers</a>
         </h3>
 <p id="section-3.1-1">Two mode identifiers are added to the table in <span><a href="https://datatracker.ietf.org/doc/html/draft-ietf-hpke-hpke-03#section-4" class="relref">Section 4</a> of [<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span>:<a href="#section-3.1-1" class="pilcrow">¶</a></p>
-<p id="section-3.1-2"><code>
+<div class="alignLeft art-text artwork" id="section-3.1-2">
+<pre>
 mode_auth     = 0x02
 mode_auth_psk = 0x03
-</code><a href="#section-3.1-2" class="pilcrow">¶</a></p>
+</pre><a href="#section-3.1-2" class="pilcrow">¶</a>
+</div>
 </section>
 </div>
 <div id="sec-authencap">
@@ -1329,7 +1336,8 @@ mode_auth_psk = 0x03
 AKEM. All helper functions (<code>GenerateKeyPair</code>, <code>DH</code>, <code>SerializePublicKey</code>,
 <code>DeserializePublicKey</code>, <code>ExtractAndExpand</code>) are as defined in
 <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span>.<a href="#section-3.2-1" class="pilcrow">¶</a></p>
-<p id="section-3.2-2">```
+<div class="alignLeft art-text artwork" id="section-3.2-2">
+<pre>
 def AuthEncap(pkR, skS):
   skE, pkE = GenerateKeyPair()
   dh = concat(DH(skE, pkR), DH(skS, pkR))
@@ -1338,8 +1346,9 @@ def AuthEncap(pkR, skS):
   pkSm = SerializePublicKey(pk(skS))
   kem_context = concat(enc, pkRm, pkSm)
   shared_secret = ExtractAndExpand(dh, kem_context)
-  return shared_secret, enc<a href="#section-3.2-2" class="pilcrow">¶</a></p>
-<p id="section-3.2-3">def AuthDecap(enc, skR, pkS):
+  return shared_secret, enc
+
+def AuthDecap(enc, skR, pkS):
   pkE = DeserializePublicKey(enc)
   dh = concat(DH(skR, pkE), DH(skR, pkS))
   pkRm = SerializePublicKey(pk(skR))
@@ -1347,7 +1356,8 @@ def AuthEncap(pkR, skS):
   kem_context = concat(enc, pkRm, pkSm)
   shared_secret = ExtractAndExpand(dh, kem_context)
   return shared_secret
-```<a href="#section-3.2-3" class="pilcrow">¶</a></p>
+</pre><a href="#section-3.2-2" class="pilcrow">¶</a>
+</div>
 </section>
 </div>
 <div id="verifypskinputs-update">
@@ -1358,7 +1368,8 @@ def AuthEncap(pkR, skS):
 <p id="section-3.3-1">The <code>VerifyPSKInputs</code> function defined in <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span> is
 extended to handle the two new modes. The updated function replaces the
 original:<a href="#section-3.3-1" class="pilcrow">¶</a></p>
-<p id="section-3.3-2"><code>
+<div class="alignLeft art-text artwork" id="section-3.3-2">
+<pre>
 def VerifyPSKInputs(mode, psk, psk_id):
   got_psk = (psk != default_psk)
   got_psk_id = (psk_id != default_psk_id)
@@ -1368,7 +1379,8 @@ def VerifyPSKInputs(mode, psk, psk_id):
     raise Exception("PSK input provided when not needed")
   if (not got_psk) and mode in [mode_psk, mode_auth_psk]:
     raise Exception("Missing required PSK input")
-</code><a href="#section-3.3-2" class="pilcrow">¶</a></p>
+</pre><a href="#section-3.3-2" class="pilcrow">¶</a>
+</div>
 <p id="section-3.3-3">The only change from the original is that <code>mode_base</code> is replaced by
 <code>[mode_base, mode_auth]</code> and <code>mode_psk</code> is replaced by
 <code>[mode_psk, mode_auth_psk]</code> in the final two guards.<a href="#section-3.3-3" class="pilcrow">¶</a></p>
@@ -1382,24 +1394,29 @@ def VerifyPSKInputs(mode, psk, psk_id):
 <p id="section-3.4-1">The following four Setup functions are added alongside those defined in
 <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span>. <code>KeySchedule</code> and <code>AuthEncap</code>/<code>AuthDecap</code> are
 as defined in <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span> and <a href="#sec-authencap" class="auto internal xref">Section 3.2</a> respectively.<a href="#section-3.4-1" class="pilcrow">¶</a></p>
-<p id="section-3.4-2">```
+<div class="alignLeft art-text artwork" id="section-3.4-2">
+<pre>
 def SetupAuthS(pkR, info, skS):
   shared_secret, enc = AuthEncap(pkR, skS)
   return enc, KeySchedule(mode_auth, shared_secret, info,
-                          default_psk, default_psk_id)<a href="#section-3.4-2" class="pilcrow">¶</a></p>
-<p id="section-3.4-3">def SetupAuthR(enc, skR, info, pkS):
+                          default_psk, default_psk_id)
+
+def SetupAuthR(enc, skR, info, pkS):
   shared_secret = AuthDecap(enc, skR, pkS)
   return KeySchedule(mode_auth, shared_secret, info,
-                     default_psk, default_psk_id)<a href="#section-3.4-3" class="pilcrow">¶</a></p>
-<p id="section-3.4-4">def SetupAuthPSKS(pkR, info, psk, psk_id, skS):
+                     default_psk, default_psk_id)
+
+def SetupAuthPSKS(pkR, info, psk, psk_id, skS):
   shared_secret, enc = AuthEncap(pkR, skS)
   return enc, KeySchedule(mode_auth_psk, shared_secret, info,
-                          psk, psk_id)<a href="#section-3.4-4" class="pilcrow">¶</a></p>
-<p id="section-3.4-5">def SetupAuthPSKR(enc, skR, info, psk, psk_id, pkS):
+                          psk, psk_id)
+
+def SetupAuthPSKR(enc, skR, info, psk, psk_id, pkS):
   shared_secret = AuthDecap(enc, skR, pkS)
   return KeySchedule(mode_auth_psk, shared_secret, info,
                      psk, psk_id)
-```<a href="#section-3.4-5" class="pilcrow">¶</a></p>
+</pre><a href="#section-3.4-2" class="pilcrow">¶</a>
+</div>
 </section>
 </div>
 </section>
@@ -1436,23 +1453,26 @@ from <code>AuthEncap</code>, of length <code>Nenc</code> bytes for the chosen DH
 PQ ciphertext as the PSK identifier. The combined encapsulation is
 <code>concat(enc_dh, enc_pq)</code>; <code>Nenc</code> bytes are parsed as <code>enc_dh</code> and the
 remaining <code>Nenc_pq</code> bytes as <code>enc_pq</code>.<a href="#section-4.2-1" class="pilcrow">¶</a></p>
-<p id="section-4.2-2">```
+<div class="alignLeft art-text artwork" id="section-4.2-2">
+<pre>
 def DH-AKEM-Hybrid.SetupS(pkR, pkR_pq, skS, info):
   pq_ss, enc_pq = PQKEM.Encap(pkR_pq)
   enc_dh, ctx = SetupAuthPSKS(pkR, info, pq_ss, enc_pq, skS)
-  return concat(enc_dh, enc_pq), ctx<a href="#section-4.2-2" class="pilcrow">¶</a></p>
-<p id="section-4.2-3">def DH-AKEM-Hybrid.SetupR(enc, skR, skR_pq, pkS, info):
+  return concat(enc_dh, enc_pq), ctx
+
+def DH-AKEM-Hybrid.SetupR(enc, skR, skR_pq, pkS, info):
   enc_dh, enc_pq = enc[:Nenc], enc[Nenc:]
   pq_ss = PQKEM.Decap(enc_pq, skR_pq)
   return SetupAuthPSKR(enc_dh, skR, info, pq_ss, enc_pq, pkS)
-```<a href="#section-4.2-3" class="pilcrow">¶</a></p>
-<p id="section-4.2-4">Implementations <span class="bcp14">MUST</span> verify <code>len(enc) == Nenc + Nenc_pq</code> and reject
+</pre><a href="#section-4.2-2" class="pilcrow">¶</a>
+</div>
+<p id="section-4.2-3">Implementations <span class="bcp14">MUST</span> verify <code>len(enc) == Nenc + Nenc_pq</code> and reject
 encapsulations of any other length. A fresh <code>(pq_ss, enc_pq)</code> pair <span class="bcp14">MUST</span>
 be generated for each encapsulation; reuse of a prior <code>enc_pq</code> is
 PROHIBITED. The <code>suite_id</code> in the HPKE key schedule reflects only the
 classical ciphersuite <code>(KEM_ID, KDF_ID, AEAD_ID)</code>; the PQ-KEM identity
 <span class="bcp14">MUST</span> be conveyed via application-layer framing or the <code>info</code> parameter
-when multiple PQ-KEM algorithms are supported.<a href="#section-4.2-4" class="pilcrow">¶</a></p>
+when multiple PQ-KEM algorithms are supported.<a href="#section-4.2-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -1623,8 +1643,12 @@ registries defined in <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D
 <span class="refAuthor">Alwen, J.</span>, <span class="refAuthor">Blanchet, B.</span>, <span class="refAuthor">Hauck, E.</span>, <span class="refAuthor">Kiltz, E.</span>, <span class="refAuthor">Lipp, B.</span>, and <span class="refAuthor">D. Riepel</span>, <span class="refTitle">"HPKE: Hybrid Public Key Encryption"</span>, <span class="refContent">Advances in Cryptology -- EUROCRYPT 2021, LNCS 12696, pp. 396-427</span>, <span class="seriesInfo">DOI 10.1007/978-3-030-77886-6_14</span>, <time datetime="2021" class="refDate">2021</time>, <span>&lt;<a href="https://doi.org/10.1007/978-3-030-77886-6_14">https://doi.org/10.1007/978-3-030-77886-6_14</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC5869">[RFC5869]</dt>
-      <dd>
+        <dd>
 <span class="refAuthor">Krawczyk, H.</span> and <span class="refAuthor">P. Eronen</span>, <span class="refTitle">"HMAC-based Extract-and-Expand Key Derivation Function (HKDF)"</span>, <span class="seriesInfo">RFC 5869</span>, <span class="seriesInfo">DOI 10.17487/RFC5869</span>, <time datetime="2010-05" class="refDate">May 2010</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc5869">https://www.rfc-editor.org/rfc/rfc5869</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9180">[RFC9180]</dt>
+      <dd>
+<span class="refAuthor">Barnes, R.</span>, <span class="refAuthor">Bhargavan, K.</span>, <span class="refAuthor">Lipp, B.</span>, and <span class="refAuthor">C. Wood</span>, <span class="refTitle">"Hybrid Public Key Encryption"</span>, <span class="seriesInfo">RFC 9180</span>, <span class="seriesInfo">DOI 10.17487/RFC9180</span>, <time datetime="2022-02" class="refDate">February 2022</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9180">https://www.rfc-editor.org/rfc/rfc9180</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 </dl>
 </section>

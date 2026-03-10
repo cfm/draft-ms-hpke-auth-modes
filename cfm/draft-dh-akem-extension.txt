@@ -13,7 +13,9 @@ Expires: 11 September 2026                                 10 March 2026
 
 Abstract
 
-   Revision -03 of [I-D.ietf-hpke-hpke] removed mode_auth (0x02) and
+   [I-D.ietf-hpke-hpke] is a standards-track Internet-Draft that
+   supersedes the informational [RFC9180].  Its revision -03, submitted
+   to the IESG for publication, removed mode_auth (0x02) and
    mode_auth_psk (0x03).  This document restores those two modes as a
    strict extension, requiring only the addition of AuthEncap/AuthDecap
    to the DHKEM, four Setup functions, and an update to VerifyPSKInputs.
@@ -92,23 +94,25 @@ Table of Contents
 
 1.  Introduction
 
-   [I-D.ietf-hpke-hpke] revision -03 removed mode_auth and mode_auth_psk
-   to reduce the surface of the core specification.  However, many
-   protocol designs require an authenticated key encapsulation mechanism
-   (AKEM) — a KEM whose shared secret is implicitly bound to the
-   sender's static private key — without requiring a full authenticated
-   encryption context.  The DHKEM construction in [I-D.ietf-hpke-hpke]
-   already contains all the primitives needed: AuthEncap computes a
-   static-static DH value DH(skS, pkR) alongside the ephemeral-static
-   value and mixes both into the key derivation, binding the output to
-   the sender's key pair.
+   [I-D.ietf-hpke-hpke] is the standards-track successor to the
+   informational [RFC9180].  Its revision -03, submitted to the IESG for
+   publication, removed mode_auth and mode_auth_psk to reduce the
+   surface of the core specification.  However, many protocol designs
+   require an authenticated key encapsulation mechanism (AKEM) — a KEM
+   whose shared secret is implicitly bound to the sender's static
+   private key — without requiring a full authenticated encryption
+   context.  The DHKEM construction in [I-D.ietf-hpke-hpke] already
+   contains all the primitives needed: AuthEncap computes a static-
+   static DH value DH(skS, pkR) alongside the ephemeral-static value and
+   mixes both into the key derivation, binding the output to the
+   sender's key pair.
 
-   This document extends [I-D.ietf-hpke-hpke] revision -03 by restoring
-   mode_auth and mode_auth_psk with minimal additions, then defines DH-
-   AKEM as named profiles of those modes.  DH-AKEM-Hybrid uses
-   mode_auth_psk with the shared secret of a post-quantum KEM
-   encapsulation as the PSK, achieving hybrid PQ/T confidentiality
-   through the HPKE key schedule's single HKDF-Extract combination step.
+   This document extends [I-D.ietf-hpke-hpke] by restoring mode_auth and
+   mode_auth_psk with minimal additions, then defines DH-AKEM as named
+   profiles of those modes.  DH-AKEM-Hybrid uses mode_auth_psk with the
+   shared secret of a post-quantum KEM encapsulation as the PSK,
+   achieving hybrid PQ/T confidentiality through the HPKE key schedule's
+   single HKDF-Extract combination step.
 
    Implicit authentication does not provide non-repudiation, and DH-AKEM
    inherits the Key Compromise Impersonation (KCI) vulnerability common
@@ -152,7 +156,8 @@ Table of Contents
    Two mode identifiers are added to the table in Section 4 of
    [I-D.ietf-hpke-hpke]:
 
-   mode_auth = 0x02 mode_auth_psk = 0x03
+   mode_auth     = 0x02
+   mode_auth_psk = 0x03
 
 3.2.  DHKEM Extension: AuthEncap and AuthDecap
 
@@ -161,17 +166,24 @@ Table of Contents
    SerializePublicKey, DeserializePublicKey, ExtractAndExpand) are as
    defined in [I-D.ietf-hpke-hpke].
 
-   ``` def AuthEncap(pkR, skS): skE, pkE = GenerateKeyPair() dh =
-   concat(DH(skE, pkR), DH(skS, pkR)) enc = SerializePublicKey(pkE) pkRm
-   = SerializePublicKey(pkR) pkSm = SerializePublicKey(pk(skS))
-   kem_context = concat(enc, pkRm, pkSm) shared_secret =
-   ExtractAndExpand(dh, kem_context) return shared_secret, enc
+   def AuthEncap(pkR, skS):
+     skE, pkE = GenerateKeyPair()
+     dh = concat(DH(skE, pkR), DH(skS, pkR))
+     enc = SerializePublicKey(pkE)
+     pkRm = SerializePublicKey(pkR)
+     pkSm = SerializePublicKey(pk(skS))
+     kem_context = concat(enc, pkRm, pkSm)
+     shared_secret = ExtractAndExpand(dh, kem_context)
+     return shared_secret, enc
 
-   def AuthDecap(enc, skR, pkS): pkE = DeserializePublicKey(enc) dh =
-   concat(DH(skR, pkE), DH(skR, pkS)) pkRm = SerializePublicKey(pk(skR))
-   pkSm = SerializePublicKey(pkS) kem_context = concat(enc, pkRm, pkSm)
-   shared_secret = ExtractAndExpand(dh, kem_context) return
-   shared_secret ```
+   def AuthDecap(enc, skR, pkS):
+     pkE = DeserializePublicKey(enc)
+     dh = concat(DH(skR, pkE), DH(skR, pkS))
+     pkRm = SerializePublicKey(pk(skR))
+     pkSm = SerializePublicKey(pkS)
+     kem_context = concat(enc, pkRm, pkSm)
+     shared_secret = ExtractAndExpand(dh, kem_context)
+     return shared_secret
 
 3.3.  VerifyPSKInputs Update
 
@@ -179,12 +191,15 @@ Table of Contents
    extended to handle the two new modes.  The updated function replaces
    the original:
 
-   def VerifyPSKInputs(mode, psk, psk_id): got_psk = (psk !=
-   default_psk) got_psk_id = (psk_id != default_psk_id) if got_psk !=
-   got_psk_id: raise Exception("Inconsistent PSK inputs") if got_psk and
-   mode in [mode_base, mode_auth]: raise Exception("PSK input provided
-   when not needed") if (not got_psk) and mode in [mode_psk,
-   mode_auth_psk]: raise Exception("Missing required PSK input")
+   def VerifyPSKInputs(mode, psk, psk_id):
+     got_psk = (psk != default_psk)
+     got_psk_id = (psk_id != default_psk_id)
+     if got_psk != got_psk_id:
+       raise Exception("Inconsistent PSK inputs")
+     if got_psk and mode in [mode_base, mode_auth]:
+       raise Exception("PSK input provided when not needed")
+     if (not got_psk) and mode in [mode_psk, mode_auth_psk]:
+       raise Exception("Missing required PSK input")
 
    The only change from the original is that mode_base is replaced by
    [mode_base, mode_auth] and mode_psk is replaced by [mode_psk,
@@ -196,21 +211,25 @@ Table of Contents
    in [I-D.ietf-hpke-hpke].  KeySchedule and AuthEncap/AuthDecap are as
    defined in [I-D.ietf-hpke-hpke] and Section 3.2 respectively.
 
-   ``` def SetupAuthS(pkR, info, skS): shared_secret, enc =
-   AuthEncap(pkR, skS) return enc, KeySchedule(mode_auth, shared_secret,
-   info, default_psk, default_psk_id)
+   def SetupAuthS(pkR, info, skS):
+     shared_secret, enc = AuthEncap(pkR, skS)
+     return enc, KeySchedule(mode_auth, shared_secret, info,
+                             default_psk, default_psk_id)
 
-   def SetupAuthR(enc, skR, info, pkS): shared_secret = AuthDecap(enc,
-   skR, pkS) return KeySchedule(mode_auth, shared_secret, info,
-   default_psk, default_psk_id)
+   def SetupAuthR(enc, skR, info, pkS):
+     shared_secret = AuthDecap(enc, skR, pkS)
+     return KeySchedule(mode_auth, shared_secret, info,
+                        default_psk, default_psk_id)
 
-   def SetupAuthPSKS(pkR, info, psk, psk_id, skS): shared_secret, enc =
-   AuthEncap(pkR, skS) return enc, KeySchedule(mode_auth_psk,
-   shared_secret, info, psk, psk_id)
+   def SetupAuthPSKS(pkR, info, psk, psk_id, skS):
+     shared_secret, enc = AuthEncap(pkR, skS)
+     return enc, KeySchedule(mode_auth_psk, shared_secret, info,
+                             psk, psk_id)
 
-   def SetupAuthPSKR(enc, skR, info, psk, psk_id, pkS): shared_secret =
-   AuthDecap(enc, skR, pkS) return KeySchedule(mode_auth_psk,
-   shared_secret, info, psk, psk_id) ```
+   def SetupAuthPSKR(enc, skR, info, psk, psk_id, pkS):
+     shared_secret = AuthDecap(enc, skR, pkS)
+     return KeySchedule(mode_auth_psk, shared_secret, info,
+                        psk, psk_id)
 
 4.  DH-AKEM Construction
 
@@ -236,13 +255,15 @@ Table of Contents
    concat(enc_dh, enc_pq); Nenc bytes are parsed as enc_dh and the
    remaining Nenc_pq bytes as enc_pq.
 
-   ``` def DH-AKEM-Hybrid.SetupS(pkR, pkR_pq, skS, info): pq_ss, enc_pq
-   = PQKEM.Encap(pkR_pq) enc_dh, ctx = SetupAuthPSKS(pkR, info, pq_ss,
-   enc_pq, skS) return concat(enc_dh, enc_pq), ctx
+   def DH-AKEM-Hybrid.SetupS(pkR, pkR_pq, skS, info):
+     pq_ss, enc_pq = PQKEM.Encap(pkR_pq)
+     enc_dh, ctx = SetupAuthPSKS(pkR, info, pq_ss, enc_pq, skS)
+     return concat(enc_dh, enc_pq), ctx
 
-   def DH-AKEM-Hybrid.SetupR(enc, skR, skR_pq, pkS, info): enc_dh,
-   enc_pq = enc[:Nenc], enc[Nenc:] pq_ss = PQKEM.Decap(enc_pq, skR_pq)
-   return SetupAuthPSKR(enc_dh, skR, info, pq_ss, enc_pq, pkS) ```
+   def DH-AKEM-Hybrid.SetupR(enc, skR, skR_pq, pkS, info):
+     enc_dh, enc_pq = enc[:Nenc], enc[Nenc:]
+     pq_ss = PQKEM.Decap(enc_pq, skR_pq)
+     return SetupAuthPSKR(enc_dh, skR, info, pq_ss, enc_pq, pkS)
 
    Implementations MUST verify len(enc) == Nenc + Nenc_pq and reject
    encapsulations of any other length.  A fresh (pq_ss, enc_pq) pair
@@ -369,6 +390,10 @@ Table of Contents
               Key Derivation Function (HKDF)", RFC 5869,
               DOI 10.17487/RFC5869, May 2010,
               <https://www.rfc-editor.org/rfc/rfc5869>.
+
+   [RFC9180]  Barnes, R., Bhargavan, K., Lipp, B., and C. Wood, "Hybrid
+              Public Key Encryption", RFC 9180, DOI 10.17487/RFC9180,
+              February 2022, <https://www.rfc-editor.org/rfc/rfc9180>.
 
 Acknowledgments
 
