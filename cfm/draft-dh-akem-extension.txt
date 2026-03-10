@@ -14,8 +14,7 @@ Expires: 11 September 2026                                 10 March 2026
 Abstract
 
    [I-D.ietf-hpke-hpke] is a standards-track Internet-Draft that
-   supersedes the informational [RFC9180].  Its revision -03, submitted
-   to the IESG for publication, removed mode_auth (0x02) and
+   supersedes the informational [RFC9180] and omits mode_auth (0x02) and
    mode_auth_psk (0x03).  This document restores those two modes as a
    strict extension, requiring only the addition of AuthEncap/AuthDecap
    to the DHKEM, four Setup functions, and an update to VerifyPSKInputs.
@@ -95,11 +94,10 @@ Table of Contents
 1.  Introduction
 
    [I-D.ietf-hpke-hpke] is the standards-track successor to the
-   informational [RFC9180].  Its revision -03, submitted to the IESG for
-   publication, removed mode_auth and mode_auth_psk to reduce the
-   surface of the core specification.  However, many protocol designs
-   require an authenticated key encapsulation mechanism (AKEM) — a KEM
-   whose shared secret is implicitly bound to the sender's static
+   informational [RFC9180] and omits mode_auth and mode_auth_psk to
+   reduce the surface of the core specification.  However, many protocol
+   designs require an authenticated key encapsulation mechanism (AKEM) —
+   a KEM whose shared secret is implicitly bound to the sender's static
    private key — without requiring a full authenticated encryption
    context.  The DHKEM construction in [I-D.ietf-hpke-hpke] already
    contains all the primitives needed: AuthEncap computes a static-
@@ -145,11 +143,11 @@ Table of Contents
 
 3.  Authenticated Mode Extensions to [I-D.ietf-hpke-hpke]
 
-   This section specifies the additions to [I-D.ietf-hpke-hpke] revision
-   -03 required to restore mode_auth and mode_auth_psk.  These
-   extensions are defined so that the externally observable behavior of
-   existing HPKE modes is unchanged, although this document updates the
-   VerifyPSKInputs procedure in [I-D.ietf-hpke-hpke].
+   This section specifies the additions to [I-D.ietf-hpke-hpke] required
+   to restore mode_auth and mode_auth_psk.  These extensions are defined
+   so that the externally observable behavior of existing HPKE modes is
+   unchanged, although this document updates the VerifyPSKInputs
+   procedure in [I-D.ietf-hpke-hpke].
 
 3.1.  Mode Identifiers
 
