@@ -142,8 +142,10 @@ Table of Contents
 3.  Authenticated Mode Extensions to [I-D.ietf-hpke-hpke]
 
    This section specifies the additions to [I-D.ietf-hpke-hpke] revision
-   -03 required to restore mode_auth and mode_auth_psk.  No existing
-   algorithm in [I-D.ietf-hpke-hpke] is modified.
+   -03 required to restore mode_auth and mode_auth_psk.  These
+   extensions are defined so that the externally observable behavior of
+   existing HPKE modes is unchanged, although this document updates the
+   VerifyPSKInputs procedure in [I-D.ietf-hpke-hpke].
 
 3.1.  Mode Identifiers
 

@@ -1304,8 +1304,10 @@ static private key and implicitly binds the shared secret to it.<a href="#sectio
 <a href="#section-3" class="section-number selfRef">3. </a><a href="#name-authenticated-mode-extensio" class="section-name selfRef">Authenticated Mode Extensions to <span class="cite xref">[I-D.ietf-hpke-hpke]</span></a>
       </h2>
 <p id="section-3-1">This section specifies the additions to <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span> revision
--03 required to restore <code>mode_auth</code> and <code>mode_auth_psk</code>. No existing
-algorithm in <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span> is modified.<a href="#section-3-1" class="pilcrow">¶</a></p>
+-03 required to restore <code>mode_auth</code> and <code>mode_auth_psk</code>. These extensions
+are defined so that the externally observable behavior of existing HPKE
+modes is unchanged, although this document updates the <code>VerifyPSKInputs</code>
+procedure in <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span>.<a href="#section-3-1" class="pilcrow">¶</a></p>
 <div id="mode-identifiers">
 <section id="section-3.1">
         <h3 id="name-mode-identifiers">
