@@ -2,14 +2,14 @@
 
 
 
-HPKE                                                       C. Myers, Ed.
+Network Working Group                                      C. Myers, Ed.
 Internet-Draft                                                R. S., Ed.
 Intended status: Standards Track         Freedom of the Press Foundation
 Expires: 11 September 2026                                 10 March 2026
 
 
                  DH-AKEM: Authenticated Modes for HPKE
-                        draft-dh-akem-extension
+                     draft-dh-akem-extension-latest
 
 Abstract
 
@@ -33,12 +33,7 @@ About This Document
    This note is to be removed before publishing as an RFC.
 
    Status information for this document may be found at
-   https://datatracker.ietf.org/doc/draft-dh-akem/.
-
-   Discussion of this document takes place on the HPKE Working Group
-   mailing list (mailto:hpke@ietf.org), which is archived at
-   https://mailarchive.ietf.org/arch/browse/hpke/.  Subscribe at
-   https://www.ietf.org/mailman/listinfo/hpke/.
+   https://datatracker.ietf.org/doc/draft-dh-akem-extension/.
 
    Source for this draft and an issue tracker can be found at
    https://github.com/cfm/draft-dh-akem-extension.
