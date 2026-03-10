@@ -9,14 +9,14 @@ number:
 date:
 consensus: true
 v: 3
-area: AREA
-workgroup: HPKE
+# area: AREA
+# workgroup: HPKE
 keyword:
 venue:
-  group: HPKE
-  type: Working Group
-  mail: hpke@ietf.org
-  github: cfm/draft-dh-akem-extension
+#  group: HPKE
+#  type: Working Group
+#  mail: hpke@ietf.org
+  github: "cfm/draft-dh-akem-extension"
 
 author:
   - fullname: Cory Myers
