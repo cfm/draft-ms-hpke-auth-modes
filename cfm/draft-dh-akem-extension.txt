@@ -194,7 +194,7 @@ Table of Contents
 
    The following four Setup functions are added alongside those defined
    in [I-D.ietf-hpke-hpke].  KeySchedule and AuthEncap/AuthDecap are as
-   defined in Section 3.2 and [I-D.ietf-hpke-hpke] respectively.
+   defined in [I-D.ietf-hpke-hpke] and Section 3.2 respectively.
 
    ``` def SetupAuthS(pkR, info, skS): shared_secret, enc =
    AuthEncap(pkR, skS) return enc, KeySchedule(mode_auth, shared_secret,
