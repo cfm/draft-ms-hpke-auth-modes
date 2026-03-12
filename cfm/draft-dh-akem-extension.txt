@@ -5,7 +5,7 @@
 Network Working Group                                      C. Myers, Ed.
 Internet-Draft                                                R. S., Ed.
 Intended status: Standards Track         Freedom of the Press Foundation
-Expires: 11 September 2026                                 10 March 2026
+Expires: 13 September 2026                                 12 March 2026
 
 
                  DH-AKEM: Authenticated Modes for HPKE
@@ -54,7 +54,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 11 September 2026.
+   This Internet-Draft will expire on 13 September 2026.
 
 Copyright Notice
 
@@ -151,7 +151,7 @@ Table of Contents
 
 3.1.  Mode Identifiers
 
-   Two mode identifiers are added to the table in Section 4 of
+   Two mode identifiers are added to the table in Section 5 of
    [I-D.ietf-hpke-hpke]:
 
    mode_auth     = 0x02
@@ -206,28 +206,29 @@ Table of Contents
 3.4.  Setup Functions
 
    The following four Setup functions are added alongside those defined
-   in [I-D.ietf-hpke-hpke].  KeySchedule and AuthEncap/AuthDecap are as
-   defined in [I-D.ietf-hpke-hpke] and Section 3.2 respectively.
+   in [I-D.ietf-hpke-hpke].  KeyScheduleS/KeyScheduleR and AuthEncap/
+   AuthDecap are as defined in [I-D.ietf-hpke-hpke] and Section 3.2
+   respectively.
 
    def SetupAuthS(pkR, info, skS):
      shared_secret, enc = AuthEncap(pkR, skS)
-     return enc, KeySchedule(mode_auth, shared_secret, info,
-                             default_psk, default_psk_id)
+     return enc, KeyScheduleS(mode_auth, shared_secret, info,
+                              default_psk, default_psk_id)
 
    def SetupAuthR(enc, skR, info, pkS):
      shared_secret = AuthDecap(enc, skR, pkS)
-     return KeySchedule(mode_auth, shared_secret, info,
-                        default_psk, default_psk_id)
+     return KeyScheduleR(mode_auth, shared_secret, info,
+                         default_psk, default_psk_id)
 
    def SetupAuthPSKS(pkR, info, psk, psk_id, skS):
      shared_secret, enc = AuthEncap(pkR, skS)
-     return enc, KeySchedule(mode_auth_psk, shared_secret, info,
-                             psk, psk_id)
+     return enc, KeyScheduleS(mode_auth_psk, shared_secret, info,
+                              psk, psk_id)
 
    def SetupAuthPSKR(enc, skR, info, psk, psk_id, pkS):
      shared_secret = AuthDecap(enc, skR, pkS)
-     return KeySchedule(mode_auth_psk, shared_secret, info,
-                        psk, psk_id)
+     return KeyScheduleR(mode_auth_psk, shared_secret, info,
+                         psk, psk_id)
 
 4.  DH-AKEM Construction
 
@@ -321,15 +322,20 @@ Table of Contents
    (application context), and psk/psk_id (in mode_auth_psk).
    Applications SHOULD populate info with session-specific context.
 
-   *Hybrid PQ/T confidentiality.* KeySchedule computes secret =
+   *Hybrid PQ/T confidentiality.* KeyScheduleS/KeyScheduleR delegate to
+   CombineSecrets, for which [I-D.ietf-hpke-hpke] defines two variants.
+   In CombineSecrets_TwoStage, the combination is secret =
    LabeledExtract(dhkem_shared_secret, "secret", psk), equivalent to
-   HKDF-Extract(salt = dhkem_shared_secret, IKM = pq_ss) [RFC5869].
-   Because dhkem_shared_secret and pq_ss are produced independently,
-   secret is pseudorandom if either the Gap-DH assumption or the PQ-KEM
-   IND-CCA2 security holds.  Only an adversary that breaks both recovers
-   ss.  Authentication remains entirely classical; a quantum adversary
-   that breaks DH can also forge sender authentication, so post-quantum
-   sender authentication requires an additional PQ signature.
+   HKDF-Extract(salt = dhkem_shared_secret, IKM = pq_ss) [RFC5869].  In
+   CombineSecrets_OneStage, dhkem_shared_secret and psk are length-
+   prefixed and concatenated before a single LabeledDerive call.  In
+   both cases, dhkem_shared_secret and pq_ss enter the combination as
+   independent inputs, so secret is pseudorandom if either the Gap-DH
+   assumption or the PQ-KEM IND-CCA2 security holds.  Only an adversary
+   that breaks both recovers ss.  Authentication remains entirely
+   classical; a quantum adversary that breaks DH can also forge sender
+   authentication, so post-quantum sender authentication requires an
+   additional PQ signature.
 
    *PSK freshness.* The ML-KEM shared secret pq_ss satisfies the entropy
    requirement in Section 9.7 of [I-D.ietf-hpke-hpke] (32 bytes of
@@ -395,9 +401,7 @@ Table of Contents
 
 Acknowledgments
 
-   The authors thank the HPKE design team — Richard Barnes, Karthikeyan
-   Bhargavan, Benjamin Lipp, and Christopher Wood — for the
-   specification on which this extension is based.
+   _TK_
 
 Authors' Addresses
 
