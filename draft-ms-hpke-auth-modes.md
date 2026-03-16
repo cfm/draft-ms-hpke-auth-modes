@@ -3,7 +3,7 @@ title: "DH-AKEM: Authenticated Modes for HPKE"
 abbrev: "DH-AKEM"
 category: std
 
-docname: draft-dh-akem-extension-latest
+docname: draft-ms-hpke-auth-modes-latest
 submissiontype: IETF # also: "independent", "editorial", "IAB", or "IRTF"
 number:
 date:
@@ -22,7 +22,7 @@ venue:
 #  group: HPKE
 #  type: Working Group
 #  mail: hpke@ietf.org
-  github: "cfm/draft-dh-akem-extension"
+  github: "cfm/draft-ms-hpke-auth-modes"
 
 author:
   - fullname: Cory Myers
