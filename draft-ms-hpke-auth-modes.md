@@ -61,6 +61,7 @@ informative:
     date: 2021
     seriesinfo:
       DOI: "10.1007/978-3-030-77886-6_14"
+  I-D.ietf-hpke-pq:
 
 --- abstract
 
@@ -215,69 +216,66 @@ def SetupAuthPSKR(enc, skR, info, psk, psk_id, pkS):
                       psk, psk_id)
 ~~~
 
-# DH-AKEM Construction (Informative) {#sec-dh-akem}
+# Example Applications (Informative) {#sec-dh-akem}
 
-This section is informative. It describes DH-AKEM, one intended
-application of the authenticated mode extension defined in {{sec-ext}},
-and may be developed as separate work.
+This section is informative. It illustrates how the authenticated modes
+defined in {{sec-ext}} may be applied, and may be developed as separate
+work. Any AEAD identifier from {{I-D.ietf-hpke-hpke}} may be used; the
+resulting context supports `Seal`, `Open`, and `Export`. Key generation
+follows `GenerateKeyPair` from {{I-D.ietf-hpke-hpke}}.
 
-DH-AKEM and DH-AKEM-Hybrid are usage profiles of the modes defined in
-{{sec-ext}}. The AEAD is selected by the application; any AEAD
-identifier from {{I-D.ietf-hpke-hpke}} may be used. The resulting
-context supports `Seal`, `Open`, and `Export` per {{I-D.ietf-hpke-hpke}}.
-Key generation is identical to `GenerateKeyPair` from
-{{I-D.ietf-hpke-hpke}}.
+The modes may be used directly via their Setup functions: for
+`mode_auth`, the sender calls `SetupAuthS(pkR, info, skS)` and the
+receiver calls `SetupAuthR(enc, skR, info, pkS)`; for `mode_auth_psk`,
+the sender calls `SetupAuthPSKS` and the receiver calls `SetupAuthPSKR`,
+with a shared PSK and PSK identifier, as defined in {{sec-setup}}.
 
-## DH-AKEM (mode_auth)
-
-For DH-AKEM the sender calls `SetupAuthS(pkR, info, skS)` and the
-receiver calls `SetupAuthR(enc, skR, info, pkS)`, as defined in
-{{sec-setup}}. The `enc` output is the serialized ephemeral public key
-from `AuthEncap`, of length `Nenc` bytes for the chosen DHKEM.
-
-## DH-AKEM-Hybrid (mode_auth_psk with PQ-KEM PSK) {#sec-hybrid}
+## Hybrid PQ/T Profile (mode_auth_psk with PQ-KEM PSK) {#sec-hybrid}
 
 The following terms are used in this section:
 
-- **PQ-KEM**: a post-quantum KEM, e.g., ML-KEM {{FIPS203}}.
-- `PQKEM.Encap(pkR_pq)`: PQ-KEM encapsulation; returns `(pq_ss, enc_pq)`.
-- `PQKEM.Decap(enc_pq, skR_pq)`: PQ-KEM decapsulation; returns `pq_ss`.
+- **PQ-KEM**: a post-quantum KEM, e.g., ML-KEM {{FIPS203}} or an
+  algorithm from {{?I-D.ietf-hpke-pq}}.
+- `PQKEM.Encap(pkR_pq)`: PQ-KEM encapsulation; returns `(ss_pq, enc_pq)`.
+- `PQKEM.Decap(enc_pq, skR_pq)`: PQ-KEM decapsulation; returns `ss_pq`.
 - `Nenc_pq`: the fixed ciphertext length of the chosen PQ-KEM, in bytes.
 
 The sender encapsulates a PQ-KEM to the receiver's PQ public key
-`pkR_pq` and uses the resulting shared secret as the HPKE PSK, with the
-PQ ciphertext as the PSK identifier. The combined encapsulation is
-`concat(enc_dh, enc_pq)`; `Nenc` bytes are parsed as `enc_dh` and the
-remaining `Nenc_pq` bytes as `enc_pq`.
+`pkR_pq`, using the resulting shared secret `ss_pq` as the HPKE PSK
+and the PQ ciphertext `enc_pq` as the PSK identifier. The receiver's PQ
+public key `pkR_pq` is included in `info` to bind it to the key
+schedule. The combined encapsulation is `concat(enc_dh, enc_pq)`; `Nenc`
+bytes are parsed as `enc_dh` and the remaining `Nenc_pq` bytes as
+`enc_pq`.
 
 ~~~
-def DH-AKEM-Hybrid.SetupS(pkR, pkR_pq, skS, info):
-  pq_ss, enc_pq = PQKEM.Encap(pkR_pq)
-  enc_dh, ctx = SetupAuthPSKS(pkR, info, pq_ss, enc_pq, skS)
+def HybridSetupS(pkR, pkR_pq, skS, info):
+  ss_pq, enc_pq = PQKEM.Encap(pkR_pq)
+  enc_dh, ctx = SetupAuthPSKS(pkR, concat(info, pkR_pq), ss_pq, enc_pq, skS)
   return concat(enc_dh, enc_pq), ctx
 
-def DH-AKEM-Hybrid.SetupR(enc, skR, skR_pq, pkS, info):
+def HybridSetupR(enc, skR, skR_pq, pkR_pq, pkS, info):
   enc_dh, enc_pq = enc[:Nenc], enc[Nenc:]
-  pq_ss = PQKEM.Decap(enc_pq, skR_pq)
-  return SetupAuthPSKR(enc_dh, skR, info, pq_ss, enc_pq, pkS)
+  ss_pq = PQKEM.Decap(enc_pq, skR_pq)
+  return SetupAuthPSKR(enc_dh, skR, concat(info, pkR_pq), ss_pq, enc_pq, pkS)
 ~~~
 
 Implementations should verify `len(enc) == Nenc + Nenc_pq` and reject
-encapsulations of any other length. A fresh `(pq_ss, enc_pq)` pair
+encapsulations of any other length. A fresh `(ss_pq, enc_pq)` pair
 should be generated for each encapsulation; reuse of a prior `enc_pq`
 is prohibited. The `suite_id` in the HPKE key schedule reflects only the
-classical ciphersuite `(KEM_ID, KDF_ID, AEAD_ID)`; the PQ-KEM identity
-should be conveyed via application-layer framing or the `info` parameter
-when multiple PQ-KEM algorithms are supported.
+classical ciphersuite `(KEM_ID, KDF_ID, AEAD_ID)`; the PQ-KEM algorithm
+identity should be conveyed via application-layer framing or the `info`
+parameter when multiple PQ-KEM algorithms are supported.
 
 **Hybrid confidentiality.** `KeyScheduleS`/`KeyScheduleR` delegate to
 `CombineSecrets`, for which {{!I-D.ietf-hpke-hpke}} defines two
 variants. In `CombineSecrets_TwoStage`, the combination is
 `secret = LabeledExtract(dhkem_shared_secret, "secret", psk)`,
-equivalent to `HKDF-Extract(salt = dhkem_shared_secret, IKM = pq_ss)`
+equivalent to `HKDF-Extract(salt = dhkem_shared_secret, IKM = ss_pq)`
 {{RFC5869}}. In `CombineSecrets_OneStage`, `dhkem_shared_secret` and
 `psk` are length-prefixed and concatenated before a single
-`LabeledDerive` call. In both cases, `dhkem_shared_secret` and `pq_ss`
+`LabeledDerive` call. In both cases, `dhkem_shared_secret` and `ss_pq`
 enter the combination as independent inputs. The intended design
 property is that `secret` remains pseudorandom as long as at least one
 of the two inputs is — meaning an adversary would need to attack both
@@ -289,33 +287,38 @@ a quantum adversary that breaks the DH assumption can also forge sender
 authentication, so post-quantum sender authentication would require an
 additional PQ signature.
 
-**PSK freshness.** The ML-KEM shared secret `pq_ss` satisfies the
+**PSK freshness.** The ML-KEM shared secret `ss_pq` satisfies the
 entropy requirement in {{Section 9.7 of !I-D.ietf-hpke-hpke}} (32 bytes
 of uniform randomness). The prohibition on `enc_pq` reuse above ensures
 a fresh PSK per session.
 
-# DH-AKEM Profiles (Informative) {#sec-suites}
+# HPKE-Auth Profiles (Informative) {#sec-suites}
 
 This section is informative. The profiles below are suggested KEM and
-KDF parameter sets for DH-AKEM applications; they are not registered by
-this document. Because `AEAD_ID` is selected by the application, these
-are parameter sets, not fully determined ciphersuites. `KEM_ID` and
-`KDF_ID` are drawn from the registries in {{I-D.ietf-hpke-hpke}}.
+KDF parameter sets for the example applications in {{sec-dh-akem}}; they
+are not registered by this document. Because `AEAD_ID` is selected by
+the application, these are parameter sets, not fully determined
+ciphersuites. `KEM_ID` and `KDF_ID` are drawn from the registries in
+{{I-D.ietf-hpke-hpke}}.
 
-| Profile                                | KEM_ID | KDF_ID | PQKEM       | Nenc | Nenc_pq |
-| -------------------------------------- | ------ | ------ | ----------- | ---- | ------- |
-| DH-AKEM-X25519-SHA256                  | 0x0020 | 0x0001 | —           | 32   | —       |
-| DH-AKEM-P256-SHA256                    | 0x0010 | 0x0001 | —           | 65   | —       |
-| DH-AKEM-X448-SHA512                    | 0x0021 | 0x0003 | —           | 56   | —       |
-| DH-AKEM-Hybrid-X25519-SHA256-MLKEM768  | 0x0020 | 0x0001 | ML-KEM-768  | 32   | 1088    |
-| DH-AKEM-Hybrid-X25519-SHA256-MLKEM1024 | 0x0020 | 0x0001 | ML-KEM-1024 | 32   | 1568    |
-| DH-AKEM-Hybrid-P256-SHA256-MLKEM768    | 0x0010 | 0x0001 | ML-KEM-768  | 65   | 1088    |
+| Profile                                     | KEM_ID | KDF_ID | PQKEM       | Nenc | Nenc_pq |
+| ------------------------------------------- | ------ | ------ | ----------- | ---- | ------- |
+| HPKE-Auth-X25519-SHA256                     | 0x0020 | 0x0001 | —           | 32   | —       |
+| HPKE-Auth-P256-SHA256                       | 0x0010 | 0x0001 | —           | 65   | —       |
+| HPKE-Auth-X448-SHA512                       | 0x0021 | 0x0003 | —           | 56   | —       |
+| HPKE-Auth-Hybrid-X25519-SHA256-MLKEM768     | 0x0020 | 0x0001 | ML-KEM-768  | 32   | 1088    |
+| HPKE-Auth-Hybrid-X25519-SHA256-MLKEM1024    | 0x0020 | 0x0001 | ML-KEM-1024 | 32   | 1568    |
+| HPKE-Auth-Hybrid-P256-SHA256-MLKEM768       | 0x0010 | 0x0001 | ML-KEM-768  | 65   | 1088    |
 
-ML-KEM parameters are from {{FIPS203}}. DH-AKEM-Hybrid-X25519-SHA256-MLKEM768
+ML-KEM parameters are from {{FIPS203}}. HPKE-Auth-Hybrid-X25519-SHA256-MLKEM768
 is the suggested default hybrid profile, yielding a combined
 encapsulation of 1120 bytes.
 
 # Security Considerations {#sec-security}
+
+The following considerations apply to `mode_auth` and `mode_auth_psk`
+as defined in {{sec-ext}}. Security properties specific to the hybrid
+PQ/T construction are discussed informatively in {{sec-hybrid}}.
 
 **Sender authentication.** These modes provide implicit authentication
 of the sender's *public key* `pkS`: a receiver that successfully derives
