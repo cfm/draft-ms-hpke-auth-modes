@@ -1,6 +1,6 @@
 ---
-title: "DH-AKEM: Authenticated Modes for HPKE"
-abbrev: "DH-AKEM"
+title: "Authenticated Modes for HPKE"
+abbrev: "HPKE Authenticated Modes"
 category: std
 
 docname: draft-ms-hpke-auth-modes-latest
@@ -15,8 +15,6 @@ keyword:
   - AKEM
   - HPKE
   - authenticated KEM
-  - post-quantum
-  - hybrid KEM
   - implicit authentication
 venue:
 #  group: HPKE
@@ -38,6 +36,10 @@ normative:
   RFC2119:
   RFC8174:
   I-D.ietf-hpke-hpke:
+
+informative:
+  RFC5869:
+  RFC9180:
   FIPS203:
     title: "Module-Lattice-Based Key-Encapsulation Mechanism Standard"
     author:
@@ -46,10 +48,6 @@ normative:
     seriesinfo:
       FIPS: "203"
     target: https://doi.org/10.6028/NIST.FIPS.203
-
-informative:
-  RFC5869:
-  RFC9180:
   Alwen2021:
     title: "HPKE: Hybrid Public Key Encryption"
     rc: "Advances in Cryptology -- EUROCRYPT 2021, LNCS 12696, pp. 396-427"
@@ -71,16 +69,14 @@ supersedes the informational {{?RFC9180}} and omits `mode_auth` (0x02)
 and `mode_auth_psk` (0x03). This document restores those two modes as a
 strict extension, requiring only the addition of `AuthEncap`/`AuthDecap`
 to the DHKEM, four Setup functions, and an update to `VerifyPSKInputs`.
+The extension does not alter the externally observable behavior of
+existing HPKE modes.
 
-On top of these restored modes, this document defines DH-AKEM: named
-usage profiles of `mode_auth` and `mode_auth_psk` that expose the full
-HPKE context API (`Seal`, `Open`, and `Export`). When `mode_auth_psk` is
-used with the shared secret of a post-quantum KEM (PQ-KEM) encapsulation
-as the PSK, the construction provides hybrid PQ/T confidentiality: an
-adversary must break both the classical Diffie-Hellman assumption and the
-PQ-KEM. Implicit sender authentication, which is sufficient for many
-applications, is provided in both cases by the static-static DH
-contribution to the DHKEM key derivation.
+This document also illustrates, informatively, how the restored modes
+may be applied. One such application uses `mode_auth_psk` with a
+post-quantum KEM (PQ-KEM) shared secret as the PSK, providing hybrid
+PQ/T confidentiality. This material is provided to motivate the
+extension and may be developed as separate work.
 
 --- middle
 
@@ -88,39 +84,40 @@ contribution to the DHKEM key derivation.
 
 {{!I-D.ietf-hpke-hpke}} is the standards-track successor to the
 informational {{?RFC9180}} and omits `mode_auth` and `mode_auth_psk` to
-reduce the surface of the core specification. However, many protocol designs require
-an authenticated key encapsulation mechanism (AKEM) — a KEM whose shared
-secret is implicitly bound to the sender's static private key — without
-requiring a full authenticated encryption context. The DHKEM construction
-in {{!I-D.ietf-hpke-hpke}} already contains all the primitives needed:
-`AuthEncap` computes a static-static DH value `DH(skS, pkR)` alongside
-the ephemeral-static value and mixes both into the key derivation,
-binding the output to the sender's key pair.
+reduce the surface of the core specification. However, many protocol
+designs require an authenticated key encapsulation mechanism (AKEM) — a
+KEM whose shared secret is implicitly bound to the sender's static
+private key — without requiring a full authenticated encryption context.
+The DHKEM construction in {{!I-D.ietf-hpke-hpke}} already contains all
+the primitives needed: `AuthEncap` computes a static-static DH value
+`DH(skS, pkR)` alongside the ephemeral-static value and mixes both into
+the key derivation, binding the output to the sender's key pair.
 
-This document extends {{!I-D.ietf-hpke-hpke}} by restoring `mode_auth`
-and `mode_auth_psk` with minimal additions, then defines
-DH-AKEM as named profiles of those modes. DH-AKEM-Hybrid uses
-`mode_auth_psk` with the shared secret of a post-quantum KEM
-encapsulation as the PSK, achieving hybrid PQ/T confidentiality through
-the HPKE key schedule's single `HKDF-Extract` combination step.
+The normative core of this document is narrow: it restores `mode_auth`
+and `mode_auth_psk` as a strict extension to {{!I-D.ietf-hpke-hpke}},
+requiring only `AuthEncap`/`AuthDecap` on the DHKEM, four Setup
+functions, and an updated `VerifyPSKInputs`. The externally observable
+behavior of existing HPKE modes is unchanged.
 
-Implicit authentication does not provide non-repudiation, and DH-AKEM
-inherits the Key Compromise Impersonation (KCI) vulnerability common to
-all DH-based authentication schemes; both limitations are discussed in
-{{sec-security}}.
+{{sec-dh-akem}} and {{sec-suites}} describe, informatively, how the
+restored modes might be applied, including a construction that layers
+a post-quantum KEM shared secret as the PSK to achieve hybrid PQ/T
+confidentiality. That material is provided to motivate the extension
+and may be developed as separate work.
+
+Implicit authentication does not provide non-repudiation, and the
+authenticated modes inherit the Key Compromise Impersonation (KCI)
+vulnerability common to all DH-based authentication schemes; both
+limitations are discussed in {{sec-security}}.
 
 # Conventions and Definitions
 {::boilerplate bcp14-tagged}
 
 Terms from {{I-D.ietf-hpke-hpke}} are used without redefinition. The
-following additional terms are used herein:
+following additional term is used herein:
 
 - **AKEM**: a KEM whose encapsulation additionally takes the sender's
   static private key and implicitly binds the shared secret to it.
-- **PQ-KEM**: a post-quantum KEM, e.g., ML-KEM {{FIPS203}}.
-- `PQKEM.Encap(pkR_pq)`: PQ-KEM encapsulation; returns `(pq_ss, enc_pq)`.
-- `PQKEM.Decap(enc_pq, skR_pq)`: PQ-KEM decapsulation; returns `pq_ss`.
-- `Nenc_pq`: the fixed ciphertext length of the chosen PQ-KEM, in bytes.
 
 # Authenticated Mode Extensions to {{I-D.ietf-hpke-hpke}} {#sec-ext}
 
@@ -218,11 +215,15 @@ def SetupAuthPSKR(enc, skR, info, psk, psk_id, pkS):
                       psk, psk_id)
 ~~~
 
-# DH-AKEM Construction {#sec-dh-akem}
+# DH-AKEM Construction (Informative) {#sec-dh-akem}
+
+This section is informative. It describes DH-AKEM, one intended
+application of the authenticated mode extension defined in {{sec-ext}},
+and may be developed as separate work.
 
 DH-AKEM and DH-AKEM-Hybrid are usage profiles of the modes defined in
 {{sec-ext}}. The AEAD is selected by the application; any AEAD
-identifier from {{I-D.ietf-hpke-hpke}} MAY be used. The resulting
+identifier from {{I-D.ietf-hpke-hpke}} may be used. The resulting
 context supports `Seal`, `Open`, and `Export` per {{I-D.ietf-hpke-hpke}}.
 Key generation is identical to `GenerateKeyPair` from
 {{I-D.ietf-hpke-hpke}}.
@@ -235,6 +236,13 @@ receiver calls `SetupAuthR(enc, skR, info, pkS)`, as defined in
 from `AuthEncap`, of length `Nenc` bytes for the chosen DHKEM.
 
 ## DH-AKEM-Hybrid (mode_auth_psk with PQ-KEM PSK) {#sec-hybrid}
+
+The following terms are used in this section:
+
+- **PQ-KEM**: a post-quantum KEM, e.g., ML-KEM {{FIPS203}}.
+- `PQKEM.Encap(pkR_pq)`: PQ-KEM encapsulation; returns `(pq_ss, enc_pq)`.
+- `PQKEM.Decap(enc_pq, skR_pq)`: PQ-KEM decapsulation; returns `pq_ss`.
+- `Nenc_pq`: the fixed ciphertext length of the chosen PQ-KEM, in bytes.
 
 The sender encapsulates a PQ-KEM to the receiver's PQ public key
 `pkR_pq` and uses the resulting shared secret as the HPKE PSK, with the
@@ -254,16 +262,37 @@ def DH-AKEM-Hybrid.SetupR(enc, skR, skR_pq, pkS, info):
   return SetupAuthPSKR(enc_dh, skR, info, pq_ss, enc_pq, pkS)
 ~~~
 
-Implementations MUST verify `len(enc) == Nenc + Nenc_pq` and reject
-encapsulations of any other length. A fresh `(pq_ss, enc_pq)` pair MUST
-be generated for each encapsulation; reuse of a prior `enc_pq` is
-PROHIBITED. The `suite_id` in the HPKE key schedule reflects only the
+Implementations should verify `len(enc) == Nenc + Nenc_pq` and reject
+encapsulations of any other length. A fresh `(pq_ss, enc_pq)` pair
+should be generated for each encapsulation; reuse of a prior `enc_pq`
+is prohibited. The `suite_id` in the HPKE key schedule reflects only the
 classical ciphersuite `(KEM_ID, KDF_ID, AEAD_ID)`; the PQ-KEM identity
-MUST be conveyed via application-layer framing or the `info` parameter
+should be conveyed via application-layer framing or the `info` parameter
 when multiple PQ-KEM algorithms are supported.
 
-# Ciphersuites {#sec-suites}
+**Hybrid confidentiality.** `KeyScheduleS`/`KeyScheduleR` delegate to
+`CombineSecrets`, for which {{!I-D.ietf-hpke-hpke}} defines two
+variants. In `CombineSecrets_TwoStage`, the combination is
+`secret = LabeledExtract(dhkem_shared_secret, "secret", psk)`,
+equivalent to `HKDF-Extract(salt = dhkem_shared_secret, IKM = pq_ss)`
+{{RFC5869}}. In `CombineSecrets_OneStage`, `dhkem_shared_secret` and
+`psk` are length-prefixed and concatenated before a single
+`LabeledDerive` call. In both cases, `dhkem_shared_secret` and `pq_ss`
+enter the combination as independent inputs, so `secret` is pseudorandom
+if either the Gap-DH assumption or the PQ-KEM IND-CCA2 security holds.
+Authentication remains entirely classical; a quantum adversary that
+breaks DH can also forge sender authentication, so post-quantum sender
+authentication would require an additional PQ signature.
 
+**PSK freshness.** The ML-KEM shared secret `pq_ss` satisfies the
+entropy requirement in {{Section 9.7 of !I-D.ietf-hpke-hpke}} (32 bytes
+of uniform randomness). The prohibition on `enc_pq` reuse above ensures
+a fresh PSK per session.
+
+# DH-AKEM Ciphersuites (Informative) {#sec-suites}
+
+This section is informative. The ciphersuites below are suggested for
+DH-AKEM usage profiles; they are not registered by this document.
 `KEM_ID`, `KDF_ID`, and `AEAD_ID` are drawn from the registries in
 {{I-D.ietf-hpke-hpke}}; `AEAD_ID` is selected by the application.
 
@@ -276,8 +305,8 @@ when multiple PQ-KEM algorithms are supported.
 | DH-AKEM-Hybrid-X25519-SHA256-MLKEM1024 | 0x0020 | 0x0001 | ML-KEM-1024 | 32   | 1568    |
 | DH-AKEM-Hybrid-P256-SHA256-MLKEM768    | 0x0010 | 0x0001 | ML-KEM-768  | 65   | 1088    |
 
-ML-KEM parameters are from {{FIPS203}}. The DH-AKEM-Hybrid-X25519-SHA256-MLKEM768
-ciphersuite SHOULD be the default hybrid choice, yielding a combined
+ML-KEM parameters are from {{FIPS203}}. DH-AKEM-Hybrid-X25519-SHA256-MLKEM768
+is the suggested default hybrid ciphersuite, yielding a combined
 encapsulation of 1120 bytes.
 
 # Security Considerations {#sec-security}
@@ -298,26 +327,6 @@ authentication.
 `kem_context`, the `mode` field (preventing cross-mode confusion), `info`
 (application context), and `psk`/`psk_id` (in `mode_auth_psk`).
 Applications SHOULD populate `info` with session-specific context.
-
-**Hybrid PQ/T confidentiality.** `KeyScheduleS`/`KeyScheduleR` delegate
-to `CombineSecrets`, for which {{!I-D.ietf-hpke-hpke}} defines two
-variants.  In `CombineSecrets_TwoStage`, the combination is
-`secret = LabeledExtract(dhkem_shared_secret, "secret", psk)`,
-equivalent to `HKDF-Extract(salt = dhkem_shared_secret, IKM = pq_ss)`
-{{RFC5869}}.  In `CombineSecrets_OneStage`, `dhkem_shared_secret` and
-`psk` are length-prefixed and concatenated before a single
-`LabeledDerive` call.  In both cases, `dhkem_shared_secret` and `pq_ss`
-enter the combination as independent inputs, so `secret` is pseudorandom
-if either the Gap-DH assumption or the PQ-KEM IND-CCA2 security holds.
-Only an adversary that breaks both recovers `ss`. Authentication remains
-entirely classical; a quantum adversary that breaks DH can also forge
-sender authentication, so post-quantum sender authentication requires an
-additional PQ signature.
-
-**PSK freshness.** The ML-KEM shared secret `pq_ss` satisfies the
-entropy requirement in {{Section 9.7 of !I-D.ietf-hpke-hpke}} (32 bytes
-of uniform randomness). The prohibition on `enc_pq` reuse in
-{{sec-hybrid}} ensures a fresh PSK per session.
 
 **Forward secrecy.** Compromise of `skS` does not reveal past shared
 secrets because the ephemeral key `skE` is independently necessary.
