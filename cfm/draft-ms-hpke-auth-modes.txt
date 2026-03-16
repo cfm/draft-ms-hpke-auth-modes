@@ -5,11 +5,11 @@
 Network Working Group                                      C. Myers, Ed.
 Internet-Draft                                                R. S., Ed.
 Intended status: Standards Track         Freedom of the Press Foundation
-Expires: 13 September 2026                                 12 March 2026
+Expires: 17 September 2026                                 16 March 2026
 
 
-                 DH-AKEM: Authenticated Modes for HPKE
-                     draft-dh-akem-extension-latest
+                      Authenticated Modes for HPKE
+                    draft-ms-hpke-auth-modes-latest
 
 Abstract
 
@@ -18,23 +18,23 @@ Abstract
    mode_auth_psk (0x03).  This document restores those two modes as a
    strict extension, requiring only the addition of AuthEncap/AuthDecap
    to the DHKEM, four Setup functions, and an update to VerifyPSKInputs.
+   The extension does not alter the externally observable behavior of
+   existing HPKE modes.
 
-   On top of these restored modes, this document defines DH-AKEM: named
-   usage profiles of mode_auth and mode_auth_psk that expose the full
-   HPKE context API (Seal, Open, and Export).  When mode_auth_psk is
-   used with the shared secret of a post-quantum KEM (PQ-KEM)
-   encapsulation as the PSK, the construction provides hybrid PQ/T
-   confidentiality: an adversary must break both the classical Diffie-
-   Hellman assumption and the PQ-KEM.  Implicit sender authentication,
-   which is sufficient for many applications, is provided in both cases
-   by the static-static DH contribution to the DHKEM key derivation.
+   This document also describes, informatively, DH-AKEM: named usage
+   profiles of the restored modes that expose the full HPKE context API
+   (Seal, Open, and Export).  A hybrid variant, DH-AKEM-Hybrid, layers a
+   post-quantum KEM (PQ-KEM) shared secret as the PSK to provide hybrid
+   PQ/T confidentiality.  This material is provided to motivate the
+   extension and illustrate one design direction; it may be developed as
+   separate work.
 
 About This Document
 
    This note is to be removed before publishing as an RFC.
 
    Status information for this document may be found at
-   https://datatracker.ietf.org/doc/draft-dh-akem-extension/.
+   https://datatracker.ietf.org/doc/draft-ms-hpke-auth-modes/.
 
    Source for this draft and an issue tracker can be found at
    https://github.com/cfm/draft-dh-akem-extension.
@@ -54,7 +54,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 13 September 2026.
+   This Internet-Draft will expire on 17 September 2026.
 
 Copyright Notice
 
@@ -79,10 +79,10 @@ Table of Contents
      3.2.  DHKEM Extension: AuthEncap and AuthDecap
      3.3.  VerifyPSKInputs Update
      3.4.  Setup Functions
-   4.  DH-AKEM Construction
+   4.  DH-AKEM Construction (Informative)
      4.1.  DH-AKEM (mode_auth)
      4.2.  DH-AKEM-Hybrid (mode_auth_psk with PQ-KEM PSK)
-   5.  Ciphersuites
+   5.  DH-AKEM Ciphersuites (Informative)
    6.  Security Considerations
    7.  IANA Considerations
    8.  References
@@ -105,17 +105,23 @@ Table of Contents
    mixes both into the key derivation, binding the output to the
    sender's key pair.
 
-   This document extends [I-D.ietf-hpke-hpke] by restoring mode_auth and
-   mode_auth_psk with minimal additions, then defines DH-AKEM as named
-   profiles of those modes.  DH-AKEM-Hybrid uses mode_auth_psk with the
-   shared secret of a post-quantum KEM encapsulation as the PSK,
-   achieving hybrid PQ/T confidentiality through the HPKE key schedule's
-   single HKDF-Extract combination step.
+   The normative core of this document is narrow: it restores mode_auth
+   and mode_auth_psk as a strict extension to [I-D.ietf-hpke-hpke],
+   requiring only AuthEncap/AuthDecap on the DHKEM, four Setup
+   functions, and an updated VerifyPSKInputs.  The externally observable
+   behavior of existing HPKE modes is unchanged.
 
-   Implicit authentication does not provide non-repudiation, and DH-AKEM
-   inherits the Key Compromise Impersonation (KCI) vulnerability common
-   to all DH-based authentication schemes; both limitations are
-   discussed in Section 6.
+   Separately, Section 4 and Section 5 describe DH-AKEM: named usage
+   profiles of the restored modes, including a hybrid variant that
+   layers a post-quantum KEM shared secret as the PSK.  This material is
+   informative, intended to motivate the extension and illustrate one
+   design direction; it may be separated into distinct work during WG
+   development.
+
+   Implicit authentication does not provide non-repudiation, and the
+   authenticated modes inherit the Key Compromise Impersonation (KCI)
+   vulnerability common to all DH-based authentication schemes; both
+   limitations are discussed in Section 6.
 
 2.  Conventions and Definitions
 
@@ -230,11 +236,15 @@ Table of Contents
      return KeyScheduleR(mode_auth_psk, shared_secret, info,
                          psk, psk_id)
 
-4.  DH-AKEM Construction
+4.  DH-AKEM Construction (Informative)
+
+   This section is informative.  It describes DH-AKEM, one intended
+   application of the authenticated mode extension defined in Section 3,
+   and may be developed as separate work.
 
    DH-AKEM and DH-AKEM-Hybrid are usage profiles of the modes defined in
    Section 3.  The AEAD is selected by the application; any AEAD
-   identifier from [I-D.ietf-hpke-hpke] MAY be used.  The resulting
+   identifier from [I-D.ietf-hpke-hpke] may be used.  The resulting
    context supports Seal, Open, and Export per [I-D.ietf-hpke-hpke].
    Key generation is identical to GenerateKeyPair from
    [I-D.ietf-hpke-hpke].
@@ -264,44 +274,45 @@ Table of Contents
      pq_ss = PQKEM.Decap(enc_pq, skR_pq)
      return SetupAuthPSKR(enc_dh, skR, info, pq_ss, enc_pq, pkS)
 
-   Implementations MUST verify len(enc) == Nenc + Nenc_pq and reject
+   Implementations should verify len(enc) == Nenc + Nenc_pq and reject
    encapsulations of any other length.  A fresh (pq_ss, enc_pq) pair
-   MUST be generated for each encapsulation; reuse of a prior enc_pq is
-   PROHIBITED.  The suite_id in the HPKE key schedule reflects only the
-   classical ciphersuite (KEM_ID, KDF_ID, AEAD_ID); the PQ-KEM identity
-   MUST be conveyed via application-layer framing or the info parameter
-   when multiple PQ-KEM algorithms are supported.
+   should be generated for each encapsulation; reuse of a prior enc_pq
+   is prohibited.  The suite_id in the HPKE key schedule reflects only
+   the classical ciphersuite (KEM_ID, KDF_ID, AEAD_ID); the PQ-KEM
+   identity should be conveyed via application-layer framing or the info
+   parameter when multiple PQ-KEM algorithms are supported.
 
-5.  Ciphersuites
+5.  DH-AKEM Ciphersuites (Informative)
 
+   This section is informative.  The ciphersuites below are suggested
+   for DH-AKEM usage profiles; they are not registered by this document.
    KEM_ID, KDF_ID, and AEAD_ID are drawn from the registries in
    [I-D.ietf-hpke-hpke]; AEAD_ID is selected by the application.
 
-   +=========================+========+========+========+====+=========+
-   | Ciphersuite             | KEM_ID | KDF_ID | PQKEM  |Nenc| Nenc_pq |
-   +=========================+========+========+========+====+=========+
-   | DH-AKEM-X25519-SHA256   | 0x0020 | 0x0001 | —      |32  | —       |
-   +-------------------------+--------+--------+--------+----+---------+
-   | DH-AKEM-P256-SHA256     | 0x0010 | 0x0001 | —      |65  | —       |
-   +-------------------------+--------+--------+--------+----+---------+
-   | DH-AKEM-X448-SHA512     | 0x0021 | 0x0003 | —      |56  | —       |
-   +-------------------------+--------+--------+--------+----+---------+
-   | DH-AKEM-Hybrid-         | 0x0020 | 0x0001 | ML-KE  |32  | 1088    |
-   | X25519-SHA256-MLKEM768  |        |        | M-768  |    |         |
-   +-------------------------+--------+--------+--------+----+---------+
-   | DH-AKEM-Hybrid-         | 0x0020 | 0x0001 | ML-KE  |32  | 1568    |
-   | X25519-SHA256-MLKEM1024 |        |        | M-     |    |         |
-   |                         |        |        | 1024   |    |         |
-   +-------------------------+--------+--------+--------+----+---------+
-   | DH-AKEM-Hybrid-         | 0x0010 | 0x0001 | ML-KE  |65  | 1088    |
-   | P256-SHA256-MLKEM768    |        |        | M-768  |    |         |
-   +-------------------------+--------+--------+--------+----+---------+
+   +=========================+========+========+=======+====+=========+
+   | Ciphersuite             | KEM_ID | KDF_ID |PQKEM  |Nenc| Nenc_pq |
+   +=========================+========+========+=======+====+=========+
+   | DH-AKEM-X25519-SHA256   | 0x0020 | 0x0001 |—      |32  | —       |
+   +-------------------------+--------+--------+-------+----+---------+
+   | DH-AKEM-P256-SHA256     | 0x0010 | 0x0001 |—      |65  | —       |
+   +-------------------------+--------+--------+-------+----+---------+
+   | DH-AKEM-X448-SHA512     | 0x0021 | 0x0003 |—      |56  | —       |
+   +-------------------------+--------+--------+-------+----+---------+
+   | DH-AKEM-Hybrid-         | 0x0020 | 0x0001 |ML-    |32  | 1088    |
+   | X25519-SHA256-MLKEM768  |        |        |KEM-768|    |         |
+   +-------------------------+--------+--------+-------+----+---------+
+   | DH-AKEM-Hybrid-         | 0x0020 | 0x0001 |ML-    |32  | 1568    |
+   | X25519-SHA256-MLKEM1024 |        |        |KEM-1024|    |         |
+   +-------------------------+--------+--------+-------+----+---------+
+   | DH-AKEM-Hybrid-         | 0x0010 | 0x0001 |ML-    |65  | 1088    |
+   | P256-SHA256-MLKEM768    |        |        |KEM-768|    |         |
+   +-------------------------+--------+--------+-------+----+---------+
 
                                   Table 1
 
-   ML-KEM parameters are from [FIPS203].  The DH-AKEM-Hybrid-
-   X25519-SHA256-MLKEM768 ciphersuite SHOULD be the default hybrid
-   choice, yielding a combined encapsulation of 1120 bytes.
+   ML-KEM parameters are from [FIPS203].  DH-AKEM-Hybrid-
+   X25519-SHA256-MLKEM768 is the suggested default hybrid ciphersuite,
+   yielding a combined encapsulation of 1120 bytes.
 
 6.  Security Considerations
 
@@ -360,11 +371,6 @@ Table of Contents
 
 8.1.  Normative References
 
-   [FIPS203]  National Institute of Standards and Technology, "Module-
-              Lattice-Based Key-Encapsulation Mechanism Standard",
-              FIPS 203, August 2024,
-              <https://doi.org/10.6028/NIST.FIPS.203>.
-
    [I-D.ietf-hpke-hpke]
               Barnes, R., Bhargavan, K., Lipp, B., and C. A. Wood,
               "Hybrid Public Key Encryption", Work in Progress,
@@ -389,6 +395,11 @@ Table of Contents
               Advances in Cryptology -- EUROCRYPT 2021, LNCS 12696, pp.
               396-427, DOI 10.1007/978-3-030-77886-6_14, 2021,
               <https://doi.org/10.1007/978-3-030-77886-6_14>.
+
+   [FIPS203]  National Institute of Standards and Technology, "Module-
+              Lattice-Based Key-Encapsulation Mechanism Standard",
+              FIPS 203, August 2024,
+              <https://doi.org/10.6028/NIST.FIPS.203>.
 
    [RFC5869]  Krawczyk, H. and P. Eronen, "HMAC-based Extract-and-Expand
               Key Derivation Function (HKDF)", RFC 5869,

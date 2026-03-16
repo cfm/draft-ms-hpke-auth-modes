@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta content="Common,Latin" name="scripts">
 <meta content="initial-scale=1.0" name="viewport">
-<title>DH-AKEM: Authenticated Modes for HPKE</title>
+<title>Authenticated Modes for HPKE</title>
 <meta content="Cory Myers" name="author">
 <meta content="Rowen S." name="author">
 <meta content="
@@ -12,40 +12,38 @@
 supersedes the informational   and omits  mode_auth  (0x02)
 and  mode_auth_psk  (0x03). This document restores those two modes as a
 strict extension, requiring only the addition of  AuthEncap / AuthDecap 
-to the DHKEM, four Setup functions, and an update to  VerifyPSKInputs . 
-       On top of these restored modes, this document defines DH-AKEM: named
-usage profiles of  mode_auth  and  mode_auth_psk  that expose the full
-HPKE context API ( Seal ,  Open , and  Export ). When  mode_auth_psk  is
-used with the shared secret of a post-quantum KEM (PQ-KEM) encapsulation
-as the PSK, the construction provides hybrid PQ/T confidentiality: an
-adversary must break both the classical Diffie-Hellman assumption and the
-PQ-KEM. Implicit sender authentication, which is sufficient for many
-applications, is provided in both cases by the static-static DH
-contribution to the DHKEM key derivation. 
+to the DHKEM, four Setup functions, and an update to  VerifyPSKInputs .
+The extension does not alter the externally observable behavior of
+existing HPKE modes. 
+       This document also describes, informatively, DH-AKEM: named usage
+profiles of the restored modes that expose the full HPKE context API
+( Seal ,  Open , and  Export ). A hybrid variant, DH-AKEM-Hybrid, layers
+a post-quantum KEM (PQ-KEM) shared secret as the PSK to provide hybrid
+PQ/T confidentiality. This material is provided to motivate the
+extension and illustrate one design direction; it may be developed as
+separate work. 
     " name="description">
-<meta content="xml2rfc 3.31.0" name="generator">
+<meta content="xml2rfc 3.32.0" name="generator">
 <meta content="AKEM" name="keyword">
 <meta content="HPKE" name="keyword">
 <meta content="authenticated KEM" name="keyword">
-<meta content="post-quantum" name="keyword">
-<meta content="hybrid KEM" name="keyword">
 <meta content="implicit authentication" name="keyword">
-<meta content="draft-dh-akem-extension-latest" name="ietf.draft">
+<meta content="draft-ms-hpke-auth-modes-latest" name="ietf.draft">
 <!-- Generator version information:
-  xml2rfc 3.31.0
+  xml2rfc 3.32.0
     Python 3.12.12
     ConfigArgParse 1.7
     google-i18n-address 3.1.1
     intervaltree 3.2.1
     Jinja2 3.1.6
     lxml 6.0.2
-    platformdirs 4.5.1
+    platformdirs 4.9.4
     pycountry 24.6.1
     PyYAML 6.0.3
     requests 2.32.5
-    wcwidth 0.3.0
+    wcwidth 0.6.0
 -->
-<link href="draft-dh-akem-extension.xml" rel="alternate" type="application/rfc+xml">
+<link href="draft-ms-hpke-auth-modes.xml" rel="alternate" type="application/rfc+xml">
 <link href="#copyright" rel="license">
 <style type="text/css">@font-face {
   font-family: 'Lora';
@@ -1063,12 +1061,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <table class="ears">
 <thead><tr>
 <td class="left">Internet-Draft</td>
-<td class="center">DH-AKEM</td>
+<td class="center">HPKE Authenticated Modes</td>
 <td class="right">March 2026</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Myers &amp; S.</td>
-<td class="center">Expires 13 September 2026</td>
+<td class="center">Expires 17 September 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1078,15 +1076,15 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dt class="label-workgroup">Workgroup:</dt>
 <dd class="workgroup">Network Working Group</dd>
 <dt class="label-internet-draft">Internet-Draft:</dt>
-<dd class="internet-draft">draft-dh-akem-extension-latest</dd>
+<dd class="internet-draft">draft-ms-hpke-auth-modes-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-03-12" class="published">12 March 2026</time>
+<time datetime="2026-03-16" class="published">16 March 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-09-13">13 September 2026</time></dd>
+<dd class="expires"><time datetime="2026-09-17">17 September 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1102,23 +1100,23 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </dd>
 </dl>
 </div>
-<h1 id="title">DH-AKEM: Authenticated Modes for HPKE</h1>
+<h1 id="title">Authenticated Modes for HPKE</h1>
 <section id="section-abstract">
       <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
 <p id="section-abstract-1"><span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span> is a standards-track Internet-Draft that
 supersedes the informational <span>[<a href="#RFC9180" class="cite xref">RFC9180</a>]</span> and omits <code>mode_auth</code> (0x02)
 and <code>mode_auth_psk</code> (0x03). This document restores those two modes as a
 strict extension, requiring only the addition of <code>AuthEncap</code>/<code>AuthDecap</code>
-to the DHKEM, four Setup functions, and an update to <code>VerifyPSKInputs</code>.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
-<p id="section-abstract-2">On top of these restored modes, this document defines DH-AKEM: named
-usage profiles of <code>mode_auth</code> and <code>mode_auth_psk</code> that expose the full
-HPKE context API (<code>Seal</code>, <code>Open</code>, and <code>Export</code>). When <code>mode_auth_psk</code> is
-used with the shared secret of a post-quantum KEM (PQ-KEM) encapsulation
-as the PSK, the construction provides hybrid PQ/T confidentiality: an
-adversary must break both the classical Diffie-Hellman assumption and the
-PQ-KEM. Implicit sender authentication, which is sufficient for many
-applications, is provided in both cases by the static-static DH
-contribution to the DHKEM key derivation.<a href="#section-abstract-2" class="pilcrow">¶</a></p>
+to the DHKEM, four Setup functions, and an update to <code>VerifyPSKInputs</code>.
+The extension does not alter the externally observable behavior of
+existing HPKE modes.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+<p id="section-abstract-2">This document also describes, informatively, DH-AKEM: named usage
+profiles of the restored modes that expose the full HPKE context API
+(<code>Seal</code>, <code>Open</code>, and <code>Export</code>). A hybrid variant, DH-AKEM-Hybrid, layers
+a post-quantum KEM (PQ-KEM) shared secret as the PSK to provide hybrid
+PQ/T confidentiality. This material is provided to motivate the
+extension and illustrate one design direction; it may be developed as
+separate work.<a href="#section-abstract-2" class="pilcrow">¶</a></p>
 </section>
 <section class="note rfcEditorRemove" id="section-note.1">
       <h2 id="name-about-this-document">
@@ -1126,7 +1124,7 @@ contribution to the DHKEM key derivation.<a href="#section-abstract-2" class="pi
       </h2>
 <p id="section-note.1-1">This note is to be removed before publishing as an RFC.<a href="#section-note.1-1" class="pilcrow">¶</a></p>
 <p id="section-note.1-2">
-        Status information for this document may be found at <span><a href="https://datatracker.ietf.org/doc/draft-dh-akem-extension/">https://datatracker.ietf.org/doc/draft-dh-akem-extension/</a></span>.<a href="#section-note.1-2" class="pilcrow">¶</a></p>
+        Status information for this document may be found at <span><a href="https://datatracker.ietf.org/doc/draft-ms-hpke-auth-modes/">https://datatracker.ietf.org/doc/draft-ms-hpke-auth-modes/</a></span>.<a href="#section-note.1-2" class="pilcrow">¶</a></p>
 <p id="section-note.1-3">Source for this draft and an issue tracker can be found at
         <span><a href="https://github.com/cfm/draft-dh-akem-extension">https://github.com/cfm/draft-dh-akem-extension</a></span>.<a href="#section-note.1-3" class="pilcrow">¶</a></p>
 </section>
@@ -1149,7 +1147,7 @@ contribution to the DHKEM key derivation.<a href="#section-abstract-2" class="pi
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 13 September 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 17 September 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1202,7 +1200,7 @@ contribution to the DHKEM key derivation.<a href="#section-abstract-2" class="pi
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4">
-            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-dh-akem-construction" class="internal xref">DH-AKEM Construction</a></p>
+            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-dh-akem-construction-inform" class="internal xref">DH-AKEM Construction (Informative)</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1">
                 <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="auto internal xref">4.1</a>.  <a href="#name-dh-akem-mode_auth" class="internal xref">DH-AKEM (mode_auth)</a></p>
@@ -1213,7 +1211,7 @@ contribution to the DHKEM key derivation.<a href="#section-abstract-2" class="pi
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
-            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-ciphersuites" class="internal xref">Ciphersuites</a></p>
+            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-dh-akem-ciphersuites-inform" class="internal xref">DH-AKEM Ciphersuites (Informative)</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6">
             <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
@@ -1249,24 +1247,29 @@ contribution to the DHKEM key derivation.<a href="#section-abstract-2" class="pi
       </h2>
 <p id="section-1-1"><span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span> is the standards-track successor to the
 informational <span>[<a href="#RFC9180" class="cite xref">RFC9180</a>]</span> and omits <code>mode_auth</code> and <code>mode_auth_psk</code> to
-reduce the surface of the core specification. However, many protocol designs require
-an authenticated key encapsulation mechanism (AKEM) — a KEM whose shared
-secret is implicitly bound to the sender's static private key — without
-requiring a full authenticated encryption context. The DHKEM construction
-in <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span> already contains all the primitives needed:
-<code>AuthEncap</code> computes a static-static DH value <code>DH(skS, pkR)</code> alongside
-the ephemeral-static value and mixes both into the key derivation,
-binding the output to the sender's key pair.<a href="#section-1-1" class="pilcrow">¶</a></p>
-<p id="section-1-2">This document extends <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span> by restoring <code>mode_auth</code>
-and <code>mode_auth_psk</code> with minimal additions, then defines
-DH-AKEM as named profiles of those modes. DH-AKEM-Hybrid uses
-<code>mode_auth_psk</code> with the shared secret of a post-quantum KEM
-encapsulation as the PSK, achieving hybrid PQ/T confidentiality through
-the HPKE key schedule's single <code>HKDF-Extract</code> combination step.<a href="#section-1-2" class="pilcrow">¶</a></p>
-<p id="section-1-3">Implicit authentication does not provide non-repudiation, and DH-AKEM
-inherits the Key Compromise Impersonation (KCI) vulnerability common to
-all DH-based authentication schemes; both limitations are discussed in
-<a href="#sec-security" class="auto internal xref">Section 6</a>.<a href="#section-1-3" class="pilcrow">¶</a></p>
+reduce the surface of the core specification. However, many protocol
+designs require an authenticated key encapsulation mechanism (AKEM) — a
+KEM whose shared secret is implicitly bound to the sender's static
+private key — without requiring a full authenticated encryption context.
+The DHKEM construction in <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span> already contains all
+the primitives needed: <code>AuthEncap</code> computes a static-static DH value
+<code>DH(skS, pkR)</code> alongside the ephemeral-static value and mixes both into
+the key derivation, binding the output to the sender's key pair.<a href="#section-1-1" class="pilcrow">¶</a></p>
+<p id="section-1-2">The normative core of this document is narrow: it restores <code>mode_auth</code>
+and <code>mode_auth_psk</code> as a strict extension to <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span>,
+requiring only <code>AuthEncap</code>/<code>AuthDecap</code> on the DHKEM, four Setup
+functions, and an updated <code>VerifyPSKInputs</code>. The externally observable
+behavior of existing HPKE modes is unchanged.<a href="#section-1-2" class="pilcrow">¶</a></p>
+<p id="section-1-3">Separately, <a href="#sec-dh-akem" class="auto internal xref">Section 4</a> and <a href="#sec-suites" class="auto internal xref">Section 5</a> describe DH-AKEM:
+named usage profiles of the restored modes, including a hybrid variant
+that layers a post-quantum KEM shared secret as the PSK. This material
+is informative, intended to motivate the extension and illustrate one
+design direction; it may be separated into distinct work during WG
+development.<a href="#section-1-3" class="pilcrow">¶</a></p>
+<p id="section-1-4">Implicit authentication does not provide non-repudiation, and the
+authenticated modes inherit the Key Compromise Impersonation (KCI)
+vulnerability common to all DH-based authentication schemes; both
+limitations are discussed in <a href="#sec-security" class="auto internal xref">Section 6</a>.<a href="#section-1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="conventions-and-definitions">
@@ -1421,15 +1424,18 @@ def SetupAuthPSKR(enc, skR, info, psk, psk_id, pkS):
 </div>
 <div id="sec-dh-akem">
 <section id="section-4">
-      <h2 id="name-dh-akem-construction">
-<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-dh-akem-construction" class="section-name selfRef">DH-AKEM Construction</a>
+      <h2 id="name-dh-akem-construction-inform">
+<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-dh-akem-construction-inform" class="section-name selfRef">DH-AKEM Construction (Informative)</a>
       </h2>
-<p id="section-4-1">DH-AKEM and DH-AKEM-Hybrid are usage profiles of the modes defined in
+<p id="section-4-1">This section is informative. It describes DH-AKEM, one intended
+application of the authenticated mode extension defined in <a href="#sec-ext" class="auto internal xref">Section 3</a>,
+and may be developed as separate work.<a href="#section-4-1" class="pilcrow">¶</a></p>
+<p id="section-4-2">DH-AKEM and DH-AKEM-Hybrid are usage profiles of the modes defined in
 <a href="#sec-ext" class="auto internal xref">Section 3</a>. The AEAD is selected by the application; any AEAD
-identifier from <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span> <span class="bcp14">MAY</span> be used. The resulting
+identifier from <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span> may be used. The resulting
 context supports <code>Seal</code>, <code>Open</code>, and <code>Export</code> per <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span>.
 Key generation is identical to <code>GenerateKeyPair</code> from
-<span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span>.<a href="#section-4-1" class="pilcrow">¶</a></p>
+<span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span>.<a href="#section-4-2" class="pilcrow">¶</a></p>
 <div id="dh-akem-modeauth">
 <section id="section-4.1">
         <h3 id="name-dh-akem-mode_auth">
@@ -1464,12 +1470,12 @@ def DH-AKEM-Hybrid.SetupR(enc, skR, skR_pq, pkS, info):
   return SetupAuthPSKR(enc_dh, skR, info, pq_ss, enc_pq, pkS)
 </pre><a href="#section-4.2-2" class="pilcrow">¶</a>
 </div>
-<p id="section-4.2-3">Implementations <span class="bcp14">MUST</span> verify <code>len(enc) == Nenc + Nenc_pq</code> and reject
-encapsulations of any other length. A fresh <code>(pq_ss, enc_pq)</code> pair <span class="bcp14">MUST</span>
-be generated for each encapsulation; reuse of a prior <code>enc_pq</code> is
-PROHIBITED. The <code>suite_id</code> in the HPKE key schedule reflects only the
+<p id="section-4.2-3">Implementations should verify <code>len(enc) == Nenc + Nenc_pq</code> and reject
+encapsulations of any other length. A fresh <code>(pq_ss, enc_pq)</code> pair
+should be generated for each encapsulation; reuse of a prior <code>enc_pq</code>
+is prohibited. The <code>suite_id</code> in the HPKE key schedule reflects only the
 classical ciphersuite <code>(KEM_ID, KDF_ID, AEAD_ID)</code>; the PQ-KEM identity
-<span class="bcp14">MUST</span> be conveyed via application-layer framing or the <code>info</code> parameter
+should be conveyed via application-layer framing or the <code>info</code> parameter
 when multiple PQ-KEM algorithms are supported.<a href="#section-4.2-3" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -1477,10 +1483,12 @@ when multiple PQ-KEM algorithms are supported.<a href="#section-4.2-3" class="pi
 </div>
 <div id="sec-suites">
 <section id="section-5">
-      <h2 id="name-ciphersuites">
-<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-ciphersuites" class="section-name selfRef">Ciphersuites</a>
+      <h2 id="name-dh-akem-ciphersuites-inform">
+<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-dh-akem-ciphersuites-inform" class="section-name selfRef">DH-AKEM Ciphersuites (Informative)</a>
       </h2>
-<p id="section-5-1"><code>KEM_ID</code>, <code>KDF_ID</code>, and <code>AEAD_ID</code> are drawn from the registries in
+<p id="section-5-1">This section is informative. The ciphersuites below are suggested for
+DH-AKEM usage profiles; they are not registered by this document.
+<code>KEM_ID</code>, <code>KDF_ID</code>, and <code>AEAD_ID</code> are drawn from the registries in
 <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span>; <code>AEAD_ID</code> is selected by the application.<a href="#section-5-1" class="pilcrow">¶</a></p>
 <table class="center" id="table-1">
         <caption><a href="#table-1" class="selfRef">Table 1</a></caption>
@@ -1545,8 +1553,8 @@ when multiple PQ-KEM algorithms are supported.<a href="#section-4.2-3" class="pi
           </tr>
         </tbody>
       </table>
-<p id="section-5-3">ML-KEM parameters are from <span>[<a href="#FIPS203" class="cite xref">FIPS203</a>]</span>. The DH-AKEM-Hybrid-X25519-SHA256-MLKEM768
-ciphersuite <span class="bcp14">SHOULD</span> be the default hybrid choice, yielding a combined
+<p id="section-5-3">ML-KEM parameters are from <span>[<a href="#FIPS203" class="cite xref">FIPS203</a>]</span>. DH-AKEM-Hybrid-X25519-SHA256-MLKEM768
+is the suggested default hybrid ciphersuite, yielding a combined
 encapsulation of 1120 bytes.<a href="#section-5-3" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -1616,10 +1624,6 @@ registries defined in <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D
 <a href="#section-8.1" class="section-number selfRef">8.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
         </h3>
 <dl class="references">
-<dt id="FIPS203">[FIPS203]</dt>
-        <dd>
-<span class="refAuthor">National Institute of Standards and Technology</span>, <span class="refTitle">"Module-Lattice-Based Key-Encapsulation Mechanism Standard"</span>, <span class="seriesInfo">FIPS 203</span>, <time datetime="2024-08" class="refDate">August 2024</time>, <span>&lt;<a href="https://doi.org/10.6028/NIST.FIPS.203">https://doi.org/10.6028/NIST.FIPS.203</a>&gt;</span>. </dd>
-<dd class="break"></dd>
 <dt id="I-D.ietf-hpke-hpke">[I-D.ietf-hpke-hpke]</dt>
         <dd>
 <span class="refAuthor">Barnes, R.</span>, <span class="refAuthor">Bhargavan, K.</span>, <span class="refAuthor">Lipp, B.</span>, and <span class="refAuthor">C. A. Wood</span>, <span class="refTitle">"Hybrid Public Key Encryption"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-hpke-hpke-03</span>, <time datetime="2026-03-02" class="refDate">2 March 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-hpke-hpke-03">https://datatracker.ietf.org/doc/html/draft-ietf-hpke-hpke-03</a>&gt;</span>. </dd>
@@ -1644,6 +1648,10 @@ registries defined in <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D
 <dt id="Alwen2021">[Alwen2021]</dt>
         <dd>
 <span class="refAuthor">Alwen, J.</span>, <span class="refAuthor">Blanchet, B.</span>, <span class="refAuthor">Hauck, E.</span>, <span class="refAuthor">Kiltz, E.</span>, <span class="refAuthor">Lipp, B.</span>, and <span class="refAuthor">D. Riepel</span>, <span class="refTitle">"HPKE: Hybrid Public Key Encryption"</span>, <span class="refContent">Advances in Cryptology -- EUROCRYPT 2021, LNCS 12696, pp. 396-427</span>, <span class="seriesInfo">DOI 10.1007/978-3-030-77886-6_14</span>, <time datetime="2021" class="refDate">2021</time>, <span>&lt;<a href="https://doi.org/10.1007/978-3-030-77886-6_14">https://doi.org/10.1007/978-3-030-77886-6_14</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="FIPS203">[FIPS203]</dt>
+        <dd>
+<span class="refAuthor">National Institute of Standards and Technology</span>, <span class="refTitle">"Module-Lattice-Based Key-Encapsulation Mechanism Standard"</span>, <span class="seriesInfo">FIPS 203</span>, <time datetime="2024-08" class="refDate">August 2024</time>, <span>&lt;<a href="https://doi.org/10.6028/NIST.FIPS.203">https://doi.org/10.6028/NIST.FIPS.203</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC5869">[RFC5869]</dt>
         <dd>
