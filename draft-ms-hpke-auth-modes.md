@@ -278,25 +278,31 @@ equivalent to `HKDF-Extract(salt = dhkem_shared_secret, IKM = pq_ss)`
 {{RFC5869}}. In `CombineSecrets_OneStage`, `dhkem_shared_secret` and
 `psk` are length-prefixed and concatenated before a single
 `LabeledDerive` call. In both cases, `dhkem_shared_secret` and `pq_ss`
-enter the combination as independent inputs, so `secret` is pseudorandom
-if either the Gap-DH assumption or the PQ-KEM IND-CCA2 security holds.
-Authentication remains entirely classical; a quantum adversary that
-breaks DH can also forge sender authentication, so post-quantum sender
-authentication would require an additional PQ signature.
+enter the combination as independent inputs. The intended design
+property is that `secret` remains pseudorandom as long as at least one
+of the two inputs is — meaning an adversary would need to attack both
+the classical DH-based component and the PQ-KEM to recover `secret`.
+Whether this property holds formally for a specific `CombineSecrets`
+variant depends on that variant's security analysis, which is outside
+the scope of this document. Authentication remains entirely classical;
+a quantum adversary that breaks the DH assumption can also forge sender
+authentication, so post-quantum sender authentication would require an
+additional PQ signature.
 
 **PSK freshness.** The ML-KEM shared secret `pq_ss` satisfies the
 entropy requirement in {{Section 9.7 of !I-D.ietf-hpke-hpke}} (32 bytes
 of uniform randomness). The prohibition on `enc_pq` reuse above ensures
 a fresh PSK per session.
 
-# DH-AKEM Ciphersuites (Informative) {#sec-suites}
+# DH-AKEM Profiles (Informative) {#sec-suites}
 
-This section is informative. The ciphersuites below are suggested for
-DH-AKEM usage profiles; they are not registered by this document.
-`KEM_ID`, `KDF_ID`, and `AEAD_ID` are drawn from the registries in
-{{I-D.ietf-hpke-hpke}}; `AEAD_ID` is selected by the application.
+This section is informative. The profiles below are suggested KEM and
+KDF parameter sets for DH-AKEM applications; they are not registered by
+this document. Because `AEAD_ID` is selected by the application, these
+are parameter sets, not fully determined ciphersuites. `KEM_ID` and
+`KDF_ID` are drawn from the registries in {{I-D.ietf-hpke-hpke}}.
 
-| Ciphersuite                            | KEM_ID | KDF_ID | PQKEM       | Nenc | Nenc_pq |
+| Profile                                | KEM_ID | KDF_ID | PQKEM       | Nenc | Nenc_pq |
 | -------------------------------------- | ------ | ------ | ----------- | ---- | ------- |
 | DH-AKEM-X25519-SHA256                  | 0x0020 | 0x0001 | —           | 32   | —       |
 | DH-AKEM-P256-SHA256                    | 0x0010 | 0x0001 | —           | 65   | —       |
@@ -306,22 +312,27 @@ DH-AKEM usage profiles; they are not registered by this document.
 | DH-AKEM-Hybrid-P256-SHA256-MLKEM768    | 0x0010 | 0x0001 | ML-KEM-768  | 65   | 1088    |
 
 ML-KEM parameters are from {{FIPS203}}. DH-AKEM-Hybrid-X25519-SHA256-MLKEM768
-is the suggested default hybrid ciphersuite, yielding a combined
+is the suggested default hybrid profile, yielding a combined
 encapsulation of 1120 bytes.
 
 # Security Considerations {#sec-security}
 
-**Implicit authentication and non-repudiation.** A receiver that
-successfully derives `ss` may conclude the encapsulation was performed by
-a holder of `skS`, since only such a party can compute `DH(skS, pkR)`.
-No explicit signature or MAC is produced; a party holding `skR` can
-simulate any sender by computing `DH(skR, pkS)` directly. Applications
-requiring non-repudiation MUST add an explicit signature scheme.
+**Sender authentication.** These modes provide implicit authentication
+of the sender's *public key* `pkS`: a receiver that successfully derives
+the shared secret has evidence that the encapsulation was produced by a
+party in possession of `skS`, the private key corresponding to `pkS`.
+This is authentication of a public key, not of an identity. Any binding
+between `pkS` and a named party, role, or credential is outside the
+scope of this document and must be established by the application.
 
-**Key Compromise Impersonation (KCI).** Compromise of the receiver's key
-`skR` enables an adversary to impersonate any sender to that receiver.
-Applications requiring KCI resistance MUST add explicit sender
-authentication.
+The authentication is implicit — no explicit proof such as a signature
+or MAC is conveyed — and therefore does not constitute non-repudiation.
+Furthermore, any party holding the receiver's private key `skR` can
+compute `DH(skR, pkS)` directly, reproducing the static DH contribution
+and thereby impersonating any sender to that receiver (Key Compromise
+Impersonation, or KCI). Applications that require non-repudiation, KCI
+resistance, or explicit identity binding MUST supplement these modes
+with an explicit signature or other authentication mechanism.
 
 **Binding.** The HPKE key schedule binds `(enc, pkR, pkS)` through
 `kem_context`, the `mode` field (preventing cross-mode confusion), `info`
