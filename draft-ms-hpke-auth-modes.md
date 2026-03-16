@@ -62,6 +62,16 @@ informative:
     seriesinfo:
       DOI: "10.1007/978-3-030-77886-6_14"
   I-D.ietf-hpke-pq:
+  Alwen2023:
+    title: "The Pre-Shared Key Modes of HPKE"
+    author:
+      - name: Joël Alwen
+      - name: Jonas Janneck
+      - name: Eike Kiltz
+      - name: Benjamin Lipp
+    date: 2023
+    rc: "Advances in Cryptology -- ASIACRYPT 2023"
+    target: https://eprint.iacr.org/2023/1480
 
 --- abstract
 
@@ -299,7 +309,11 @@ variant depends on that variant's security analysis, which is outside
 the scope of this document. Authentication remains entirely classical;
 a quantum adversary that breaks the DH assumption can also forge sender
 authentication, so post-quantum sender authentication would require an
-additional PQ signature.
+additional PQ signature. Note that {{Alwen2023}} describes a related
+hybrid construction in which a PQ *AKEM* (rather than a plain KEM) is
+used to generate the PSK, which would additionally provide post-quantum
+sender authentication; that stronger construction is outside the scope
+of this document.
 
 **PSK freshness.** The ML-KEM shared secret `ss_pq` satisfies the
 entropy requirement in {{Section 9.5 of !I-D.ietf-hpke-hpke}} (32 bytes
@@ -363,7 +377,9 @@ Compromise of `skR` enables decapsulation of all past sessions targeting
 higher-level ratchet or key-update mechanism.
 
 The formal security of the DHKEM authenticated modes under the Gap-DH
-assumption is established in {{Alwen2021}}.
+assumption is established in {{Alwen2021}}. The security of
+`mode_auth_psk` — termed `AuthPSK` in {{Alwen2023}} — is analyzed there
+as the `pskAPKE` scheme.
 
 # IANA Considerations {#sec-iana}
 
