@@ -155,9 +155,10 @@ Table of Contents
 3.2.  DHKEM Extension: AuthEncap and AuthDecap
 
    The following two functions are added to the DHKEM, extending it to
-   an AKEM.  All helper functions (GenerateKeyPair, DH,
-   SerializePublicKey, DeserializePublicKey, ExtractAndExpand) are as
-   defined in [I-D.ietf-hpke-hpke].
+   an AKEM.  They are reproduced verbatim from Section 4.1 of [RFC9180],
+   as maintained in [I-D.ietf-hpke-hpke].  All helper functions
+   (GenerateKeyPair, DH, SerializePublicKey, DeserializePublicKey,
+   ExtractAndExpand) are as defined in [I-D.ietf-hpke-hpke].
 
    def AuthEncap(pkR, skS):
      skE, pkE = GenerateKeyPair()
@@ -186,9 +187,9 @@ Table of Contents
 
 3.3.  VerifyPSKInputs Update
 
-   The VerifyPSKInputs function defined in [I-D.ietf-hpke-hpke] is
-   extended to handle the two new modes.  The updated function replaces
-   the original:
+   The VerifyPSKInputs function defined in Section 5.1 of [RFC9180] and
+   [I-D.ietf-hpke-hpke] is extended to handle the two new modes.  The
+   updated function replaces the original:
 
    def VerifyPSKInputs(mode, psk, psk_id):
      got_psk = (psk != default_psk)
@@ -206,8 +207,9 @@ Table of Contents
 
 3.4.  Setup Functions
 
-   The following four Setup functions are added alongside those defined
-   in [I-D.ietf-hpke-hpke].  KeyScheduleS/KeyScheduleR and AuthEncap/
+   The following four Setup functions are reproduced verbatim from
+   Sections 5.1.3 and 5.1.4 of [RFC9180], as maintained in
+   [I-D.ietf-hpke-hpke].  KeyScheduleS/KeyScheduleR and AuthEncap/
    AuthDecap are as defined in [I-D.ietf-hpke-hpke] and Section 3.2
    respectively.
 
