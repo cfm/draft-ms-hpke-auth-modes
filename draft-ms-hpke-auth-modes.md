@@ -116,11 +116,6 @@ a post-quantum KEM shared secret as the PSK to achieve hybrid PQ/T
 confidentiality as defined in {{Section 5 of ?RFC9794}}. That material is
 provided to motivate the extension and may be developed as separate work.
 
-Implicit authentication does not provide non-repudiation, and the
-authenticated modes inherit the Key Compromise Impersonation (KCI)
-vulnerability common to all DH-based authentication schemes; both
-limitations are discussed in {{sec-security}}.
-
 # Conventions and Definitions
 {::boilerplate bcp14-tagged}
 
@@ -346,37 +341,12 @@ encapsulation of 1120 bytes.
 
 # Security Considerations {#sec-security}
 
-The following considerations apply to `mode_auth` and `mode_auth_psk`
-as defined in {{sec-ext}}. Security properties specific to the hybrid
-PQ/T construction are discussed informatively in {{sec-hybrid}}.
-
-**Sender authentication.** These modes provide implicit authentication
-of the sender's *public key* `pkS`: a receiver that successfully derives
-the shared secret has evidence that the encapsulation was produced by a
-party in possession of `skS`, the private key corresponding to `pkS`.
-This is authentication of a public key, not of an identity. Any binding
-between `pkS` and a named party, role, or credential is outside the
-scope of this document and must be established by the application.
-
-The authentication is implicit — no explicit proof such as a signature
-or MAC is conveyed — and therefore does not constitute non-repudiation.
-Furthermore, any party holding the receiver's private key `skR` can
-compute `DH(skR, pkS)` directly, reproducing the static DH contribution
-and thereby impersonating any sender to that receiver (Key Compromise
-Impersonation, or KCI). Applications that require non-repudiation, KCI
-resistance, or explicit identity binding MUST supplement these modes
-with an explicit signature or other authentication mechanism.
-
-**Binding.** The HPKE key schedule binds `(enc, pkR, pkS)` through
-`kem_context`, the `mode` field (preventing cross-mode confusion), `info`
-(application context), and `psk`/`psk_id` (in `mode_auth_psk`).
-Applications SHOULD populate `info` with session-specific context.
-
-**Forward secrecy.** Compromise of `skS` does not reveal past shared
-secrets because the ephemeral key `skE` is independently necessary.
-Compromise of `skR` enables decapsulation of all past sessions targeting
-`pkR`; applications requiring receiver-key forward secrecy MUST use a
-higher-level ratchet or key-update mechanism.
+The sender-authentication and key-compromise impersonation (KCI)
+properties of `mode_auth` and `mode_auth_psk` are as described in
+{{Sections 9.1 and 9.1.1 of ?RFC9180}}, which apply without change to
+the functions defined in {{sec-ext}}. Security properties specific to
+the hybrid PQ/T construction are discussed informatively in
+{{sec-hybrid}}.
 
 The formal security of the DHKEM authenticated modes under the Gap-DH
 assumption is established in {{Alwen2021}}. The security of
