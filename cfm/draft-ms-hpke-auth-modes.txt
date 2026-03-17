@@ -210,10 +210,9 @@ Table of Contents
 3.4.  Setup Functions
 
    The following four setup functions are reproduced verbatim from
-   Sections 5.1.3 and 5.1.4 of [RFC9180], as maintained in
-   [I-D.ietf-hpke-hpke].  KeyScheduleS()/KeyScheduleR() and
-   AuthEncap()/AuthDecap() are as defined in [I-D.ietf-hpke-hpke] and
-   Section 3.2 respectively.
+   Sections 5.1.3 and 5.1.4 of [RFC9180].  KeyScheduleS()/KeyScheduleR()
+   and AuthEncap()/AuthDecap() are as defined in [I-D.ietf-hpke-hpke]
+   and Section 3.2 respectively.
 
    def SetupAuthS(pkR, info, skS):
      shared_secret, enc = AuthEncap(pkR, skS)
