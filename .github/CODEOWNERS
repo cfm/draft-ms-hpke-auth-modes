@@ -1,3 +1,3 @@
 # Automatically generated CODEOWNERS
 # Regenerate with `make update-codeowners`
-draft-dh-akem-extension.md cfm@acm.org ro@freedom.press
+draft-ms-hpke-auth-modes.md cfm@acm.org ro@freedom.press

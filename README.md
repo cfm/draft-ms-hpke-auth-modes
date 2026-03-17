@@ -1,19 +1,19 @@
-<!-- regenerate: on (set to off if you edit this file) -->
+<!-- regenerate: off (set to off if you edit this file) -->
 
-# TODO - Your title
+# Authenticated Modes for HPKE
 
-This is the working area for the individual Internet-Draft, "TODO - Your title".
+This is the working area for the individual Internet-Draft, "Authenticated Modes for HPKE".
 
-* [Editor's Copy](https://cfm.github.io/draft-dh-akem-extension/#go.draft-dh-akem-extension.html)
-* [Datatracker Page](https://datatracker.ietf.org/doc/draft-dh-akem-extension)
-* [Individual Draft](https://datatracker.ietf.org/doc/html/draft-dh-akem-extension)
-* [Compare Editor's Copy to Individual Draft](https://cfm.github.io/draft-dh-akem-extension/#go.draft-dh-akem-extension.diff)
+* [Editor's Copy](https://cfm.github.io/draft-ms-hpke-auth-modes/#go.draft-ms-hpke-auth-modes.html)
+* [Datatracker Page](https://datatracker.ietf.org/doc/draft-ms-hpke-auth-modes)
+* [Individual Draft](https://datatracker.ietf.org/doc/html/draft-ms-hpke-auth-modes)
+* [Compare Editor's Copy to Individual Draft](https://cfm.github.io/draft-ms-hpke-auth-modes/#go.draft-ms-hpke-auth-modes.diff)
 
 
 ## Contributing
 
 See the
-[guidelines for contributions](https://github.com/cfm/draft-dh-akem-extension/blob//CONTRIBUTING.md).
+[guidelines for contributions](https://github.com/cfm/draft-ms-hpke-auth-modes/blob//CONTRIBUTING.md).
 
 The contributing file also has tips on how to make contributions, if you
 don't already know how to do that.

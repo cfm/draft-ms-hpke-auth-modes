@@ -1,4 +1,4 @@
 # License
 
 See the
-[guidelines for contributions](https://github.com/cfm/draft-dh-akem-extension/blob//CONTRIBUTING.md).
+[guidelines for contributions](https://github.com/cfm/draft-ms-hpke-auth-modes/blob//CONTRIBUTING.md).
