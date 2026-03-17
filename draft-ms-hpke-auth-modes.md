@@ -151,9 +151,10 @@ mode_auth_psk = 0x03
 ## DHKEM Extension: AuthEncap and AuthDecap {#sec-authencap}
 
 The following two functions are added to the DHKEM, extending it to an
-AKEM. All helper functions (`GenerateKeyPair`, `DH`, `SerializePublicKey`,
-`DeserializePublicKey`, `ExtractAndExpand`) are as defined in
-{{I-D.ietf-hpke-hpke}}.
+AKEM. They are reproduced verbatim from {{Section 4.1 of ?RFC9180}}, as
+maintained in {{!I-D.ietf-hpke-hpke}}. All helper functions
+(`GenerateKeyPair`, `DH`, `SerializePublicKey`, `DeserializePublicKey`,
+`ExtractAndExpand`) are as defined in {{!I-D.ietf-hpke-hpke}}.
 
 ~~~
 def AuthEncap(pkR, skS):
@@ -183,9 +184,9 @@ private key `skR` is compromised. See {{sec-security}} for further discussion.
 
 ## VerifyPSKInputs Update
 
-The `VerifyPSKInputs` function defined in {{I-D.ietf-hpke-hpke}} is
-extended to handle the two new modes. The updated function replaces the
-original:
+The `VerifyPSKInputs` function defined in {{Section 5.1 of ?RFC9180}} and
+{{!I-D.ietf-hpke-hpke}} is extended to handle the two new modes. The
+updated function replaces the original:
 
 ~~~
 def VerifyPSKInputs(mode, psk, psk_id):
@@ -205,8 +206,9 @@ The only change from the original is that `mode_base` is replaced by
 
 ## Setup Functions {#sec-setup}
 
-The following four Setup functions are added alongside those defined in
-{{I-D.ietf-hpke-hpke}}. `KeyScheduleS`/`KeyScheduleR` and
+The following four Setup functions are reproduced verbatim from
+{{Sections 5.1.3 and 5.1.4 of ?RFC9180}}, as maintained in
+{{!I-D.ietf-hpke-hpke}}. `KeyScheduleS`/`KeyScheduleR` and
 `AuthEncap`/`AuthDecap` are as defined in {{!I-D.ietf-hpke-hpke}} and
 {{sec-authencap}} respectively.
 
