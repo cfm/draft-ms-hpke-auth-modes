@@ -112,8 +112,9 @@ Table of Contents
    Section 4 and Section 5 describe, informatively, how the restored
    modes might be applied, including a construction that layers a post-
    quantum KEM shared secret as the PSK to achieve hybrid PQ/T
-   confidentiality.  That material is provided to motivate the extension
-   and may be developed as separate work.
+   confidentiality as defined in Section 5 of [RFC9794].  That material
+   is provided to motivate the extension and may be developed as
+   separate work.
 
    Implicit authentication does not provide non-repudiation, and the
    authenticated modes inherit the Key Compromise Impersonation (KCI)
@@ -454,6 +455,11 @@ def HybridSetupR(enc, skR, skR_pq, pkR_pq, pkS, info):
    [RFC9180]  Barnes, R., Bhargavan, K., Lipp, B., and C. Wood, "Hybrid
               Public Key Encryption", RFC 9180, DOI 10.17487/RFC9180,
               February 2022, <https://www.rfc-editor.org/rfc/rfc9180>.
+
+   [RFC9794]  Driscoll, F., Parsons, M., and B. Hale, "Terminology for
+              Post-Quantum Traditional Hybrid Schemes", RFC 9794,
+              DOI 10.17487/RFC9794, June 2025,
+              <https://www.rfc-editor.org/rfc/rfc9794>.
 
 Acknowledgments
 
