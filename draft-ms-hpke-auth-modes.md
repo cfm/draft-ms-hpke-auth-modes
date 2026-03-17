@@ -113,8 +113,8 @@ behavior of existing HPKE modes is unchanged.
 {{sec-dh-akem}} and {{sec-suites}} describe, informatively, how the
 restored modes might be applied, including a construction that layers
 a post-quantum KEM shared secret as the PSK to achieve hybrid PQ/T
-confidentiality. That material is provided to motivate the extension
-and may be developed as separate work.
+confidentiality as defined in {{Section 5 of ?RFC9794}}. That material is
+provided to motivate the extension and may be developed as separate work.
 
 Implicit authentication does not provide non-repudiation, and the
 authenticated modes inherit the Key Compromise Impersonation (KCI)
