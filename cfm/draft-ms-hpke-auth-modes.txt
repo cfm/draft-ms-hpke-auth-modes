@@ -248,7 +248,7 @@ Table of Contents
    This section is informative.  It illustrates how the authenticated
    modes defined in Section 3 can be used.  Any AEAD identifier from
    [I-D.ietf-hpke-hpke] may be used; the resulting context supports
-   Seal(), Open(), and Export_*().  Key generation follows
+   Seal(), Open(), and Export().  Key generation follows
    GenerateKeyPair() from [I-D.ietf-hpke-hpke].
 
    The modes may be used directly via their setup functions.  For
@@ -298,7 +298,7 @@ def HybridSetupR(enc, skR, skR_pq, pkR_pq, pkS, info):
    algorithm identity should be conveyed via application-layer framing
    or the info parameter when multiple PQ-KEM algorithms are supported.
 
-   *Hybrid confidentiality.* KeyScheduleS()/KeyScheduleR delegate to
+   *Hybrid confidentiality.* KeyScheduleS()/KeyScheduleR() delegate to
    CombineSecrets, for which [I-D.ietf-hpke-hpke] defines two variants.
    In CombineSecrets_TwoStage(), the combination is secret =
    LabeledExtract(dhkem_shared_secret, "secret", psk), equivalent to
