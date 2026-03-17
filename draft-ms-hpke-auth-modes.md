@@ -13,9 +13,9 @@ v: 3
 # workgroup: HPKE
 keyword:
   - AKEM
-  - HPKE
   - authenticated KEM
-  - implicit authentication
+  - DHKEM
+  - HPKE
 venue:
 #  group: HPKE
 #  type: Working Group
@@ -23,7 +23,7 @@ venue:
   github: "cfm/draft-ms-hpke-auth-modes"
 
 author:
-  - fullname: Cory Myers
+  - fullname: Cory Francis Myers
     role: editor
     organization: Freedom of the Press Foundation
     email: cfm@acm.org
@@ -33,13 +33,9 @@ author:
     email: ro@freedom.press
 
 normative:
-  RFC2119:
-  RFC8174:
   I-D.ietf-hpke-hpke:
 
 informative:
-  RFC5869:
-  RFC9180:
   FIPS203:
     title: "Module-Lattice-Based Key-Encapsulation Mechanism Standard"
     author:
@@ -61,7 +57,6 @@ informative:
     date: 2021
     seriesinfo:
       DOI: "10.1007/978-3-030-77886-6_14"
-  I-D.ietf-hpke-pq:
   Alwen2023:
     title: "The Pre-Shared Key Modes of HPKE"
     author:
@@ -75,113 +70,118 @@ informative:
 
 --- abstract
 
-{{I-D.ietf-hpke-hpke}} is a standards-track Internet-Draft that
-supersedes the informational {{?RFC9180}} and omits `mode_auth` (0x02)
-and `mode_auth_psk` (0x03). This document restores those two modes as a
-strict extension, requiring only the addition of `AuthEncap`/`AuthDecap`
-to the DHKEM, four Setup functions, and an update to `VerifyPSKInputs`.
-The extension does not alter the externally observable behavior of
-existing HPKE modes.
+The standards-track {{!I-D.ietf-hpke-hpke}} supersedes the informational
+{{?RFC9180}}, omitting its authenticated modes `mode_auth` and `mode_auth_psk`.
+This document restores those two modes as a strict extension, requiring only the
+addition of `AuthEncap()`/`AuthDecap()` to the DHKEM, the definition of four
+setup functions, and a change in `VerifyPSKInputs()`.  The extension does not
+alter the externally observable behavior of the existing HPKE modes standardized
+in {{!I-D.ietf-hpke-hpke}}.
 
-This document also illustrates, informatively, how the restored modes
-may be applied. One such application uses `mode_auth_psk` with a
-post-quantum KEM (PQ-KEM) shared secret as the PSK, providing hybrid
-PQ/T confidentiality. This material is provided to motivate the
-extension and may be developed as separate work.
+This document also illustrates, informatively, how the restored modes can be
+used. One such application uses `mode_auth_psk` with a post-quantum KEM (PQ-KEM)
+shared secret as the PSK, providing hybrid PQ/T confidentiality. This material
+is provided to motivate the extension and may be developed as separate work.
 
 --- middle
 
 # Introduction
 
-{{!I-D.ietf-hpke-hpke}} is the standards-track successor to the
-informational {{?RFC9180}} and omits `mode_auth` and `mode_auth_psk` to
-reduce the surface of the core specification. However, many protocol
-designs require an authenticated key encapsulation mechanism (AKEM) — a
-KEM whose shared secret is implicitly bound to the sender's static
-private key — without requiring a full authenticated encryption context.
-The DHKEM construction in {{!I-D.ietf-hpke-hpke}} already contains all
-the primitives needed: `AuthEncap` computes a static-static DH value
-`DH(skS, pkR)` alongside the ephemeral-static value and mixes both into
-the key derivation, binding the output to the sender's key pair.
+{{!I-D.ietf-hpke-hpke}} is the standards-track successor to the informational
+{{?RFC9180}} and omits the authenticated modes `mode_auth` and `mode_auth_psk`
+to simplify the standard. However, some protocols require an authenticated
+key-encapsulation mechanism (AKEM)---a KEM whose shared secret is implicitly
+bound to the sender's static private key---without requiring a full
+authenticated encryption context.  The DHKEM construction in
+{{!I-D.ietf-hpke-hpke}} already contains all the primitives needed:
+`AuthEncap()` computes a static-static DH value `DH(skS, pkR)` alongside the
+ephemeral-static value and mixes both into the key derivation, binding the
+output to the sender's key pair.
 
-The normative core of this document is narrow: it restores `mode_auth`
-and `mode_auth_psk` as a strict extension to {{!I-D.ietf-hpke-hpke}},
-requiring only `AuthEncap`/`AuthDecap` on the DHKEM, four Setup
-functions, and an updated `VerifyPSKInputs`. The externally observable
-behavior of existing HPKE modes is unchanged.
+The normative portion of this document is small.  It restores `mode_auth` and
+`mode_auth_psk` as a strict extension to {{!I-D.ietf-hpke-hpke}}, requiring only
+`AuthEncap()`/`AuthDecap()` on the DHKEM, four setup functions, and a modified
+`VerifyPSKInputs()`. The externally observable behavior of existing HPKE modes
+is unchanged.
 
-{{sec-dh-akem}} and {{sec-suites}} describe, informatively, how the
-restored modes might be applied, including a construction that layers
-a post-quantum KEM shared secret as the PSK to achieve hybrid PQ/T
-confidentiality as defined in {{Section 5 of ?RFC9794}}. That material is
-provided to motivate the extension and may be developed as separate work.
+{{sec-dh-akem}} and {{sec-suites}} describe, informatively, how the restored
+modes can be used, including a construction that layers a post-quantum KEM
+shared secret as the PSK to achieve hybrid PQ/T confidentiality as defined in
+{{Section 5 of ?RFC9794}}. That material is provided to motivate the extension
+and may be developed as separate work.
 
 # Conventions and Definitions
 {::boilerplate bcp14-tagged}
 
-Terms from {{I-D.ietf-hpke-hpke}} are used without redefinition. The
-following additional term is used herein:
+Terms from {{I-D.ietf-hpke-hpke}} are used without redefinition. The following
+additional term is used herein:
 
-- **AKEM**: a KEM whose encapsulation additionally takes the sender's
-  static private key and implicitly binds the shared secret to it.
+- **AKEM:** a KEM whose encapsulation additionally takes the sender's static
+  private key and implicitly binds the shared secret to it.
 
 # Authenticated Mode Extensions to {{I-D.ietf-hpke-hpke}} {#sec-ext}
 
-This section specifies the additions to {{!I-D.ietf-hpke-hpke}} required
-to restore `mode_auth` and `mode_auth_psk`. These extensions
-are defined so that the externally observable behavior of existing HPKE
-modes is unchanged, although this document updates the `VerifyPSKInputs`
-procedure in {{I-D.ietf-hpke-hpke}}.
+This section specifies the additions to {{!I-D.ietf-hpke-hpke}} required to
+restore `mode_auth` and `mode_auth_psk`. These extensions are defined so that
+the externally observable behavior of the existing HPKE modes is unchanged,
+although this document modifies the `VerifyPSKInputs()` procedure in
+{{I-D.ietf-hpke-hpke}}.
 
 ## Mode Identifiers
 
-The reserved entries for values 0x02 and 0x03 in Table 1 of
-{{!I-D.ietf-hpke-hpke}} are replaced with the following mode identifiers:
+The reserved entries for values `0x02` and `0x03` in Table 1 of
+{{!I-D.ietf-hpke-hpke}} are replaced with the following mode identifiers, as
+originally specified in Table 1 of {{?RFC9180}}:
 
 ~~~
 mode_auth     = 0x02
 mode_auth_psk = 0x03
 ~~~
 
-## DHKEM Extension: AuthEncap and AuthDecap {#sec-authencap}
+## DHKEM Extension: `AuthEncap()` and `AuthDecap()` {#sec-authencap}
 
-The following two functions are added to the DHKEM, extending it to an
-AKEM. They are reproduced verbatim from {{Section 4.1 of ?RFC9180}}, as
-maintained in {{!I-D.ietf-hpke-hpke}}. All helper functions
-(`GenerateKeyPair`, `DH`, `SerializePublicKey`, `DeserializePublicKey`,
-`ExtractAndExpand`) are as defined in {{!I-D.ietf-hpke-hpke}}.
+The following two functions are added to the DHKEM, extending it to an AKEM.
+They are reproduced verbatim from {{Section 4.1 of ?RFC9180}}. All helper
+functions (`GenerateKeyPair`, `DH`, `SerializePublicKey`,
+`DeserializePublicKey`, `ExtractAndExpand`) are as defined in
+{{!I-D.ietf-hpke-hpke}}.
 
 ~~~
 def AuthEncap(pkR, skS):
   skE, pkE = GenerateKeyPair()
   dh = concat(DH(skE, pkR), DH(skS, pkR))
   enc = SerializePublicKey(pkE)
+
   pkRm = SerializePublicKey(pkR)
   pkSm = SerializePublicKey(pk(skS))
+
   kem_context = concat(enc, pkRm, pkSm)
   shared_secret = ExtractAndExpand(dh, kem_context)
+
   return shared_secret, enc
 
 def AuthDecap(enc, skR, pkS):
   pkE = DeserializePublicKey(enc)
   dh = concat(DH(skR, pkE), DH(skR, pkS))
+
   pkRm = SerializePublicKey(pk(skR))
   pkSm = SerializePublicKey(pkS)
   kem_context = concat(enc, pkRm, pkSm)
+
   shared_secret = ExtractAndExpand(dh, kem_context)
   return shared_secret
 ~~~
 
-Note that the AuthEncap() and AuthDecap() functions are vulnerable to
+Note that the `AuthEncap()` and `AuthDecap()` functions are vulnerable to
 key-compromise impersonation (KCI): the assurance that the shared secret was
 generated by the holder of the private key `skS` does not hold if the recipient
 private key `skR` is compromised. See {{sec-security}} for further discussion.
 
-## VerifyPSKInputs Update
+## `VerifyPSKInputs`
 
-The `VerifyPSKInputs` function defined in {{Section 5.1 of ?RFC9180}} and
-{{!I-D.ietf-hpke-hpke}} is extended to handle the two new modes. The
-updated function replaces the original:
+The `VerifyPSKInputs()` function defined in {{Section 5.1 of ?RFC9180}} and
+{{!I-D.ietf-hpke-hpke}} is extended to handle the two new modes. The updated
+function replaces the original:
 
 ~~~
 def VerifyPSKInputs(mode, psk, psk_id):
@@ -189,6 +189,7 @@ def VerifyPSKInputs(mode, psk, psk_id):
   got_psk_id = (psk_id != default_psk_id)
   if got_psk != got_psk_id:
     raise Exception("Inconsistent PSK inputs")
+
   if got_psk and mode in [mode_base, mode_auth]:
     raise Exception("PSK input provided when not needed")
   if (not got_psk) and mode in [mode_psk, mode_auth_psk]:
@@ -196,15 +197,14 @@ def VerifyPSKInputs(mode, psk, psk_id):
 ~~~
 
 The only change from the original is that `mode_base` is replaced by
-`[mode_base, mode_auth]` and `mode_psk` is replaced by
-`[mode_psk, mode_auth_psk]` in the final two guards.
+`[mode_base, mode_auth]` and `mode_psk` is replaced by `[mode_psk,
+mode_auth_psk]` in the final two guards.
 
 ## Setup Functions {#sec-setup}
 
-The following four Setup functions are reproduced verbatim from
-{{Sections 5.1.3 and 5.1.4 of ?RFC9180}}, as maintained in
-{{!I-D.ietf-hpke-hpke}}. `KeyScheduleS`/`KeyScheduleR` and
-`AuthEncap`/`AuthDecap` are as defined in {{!I-D.ietf-hpke-hpke}} and
+The following four setup functions are reproduced verbatim from {{Sections 5.1.3
+and 5.1.4 of ?RFC9180}}.  `KeyScheduleS()`/`KeyScheduleR()` and
+`AuthEncap()`/`AuthDecap()` are as defined in {{!I-D.ietf-hpke-hpke}} and
 {{sec-authencap}} respectively.
 
 ~~~
@@ -232,42 +232,39 @@ def SetupAuthPSKR(enc, skR, info, psk, psk_id, pkS):
 ## Input Validation and Error Handling
 
 In addition to the validation requirements in {{Section 7.1.4 of
-!I-D.ietf-hpke-hpke}}, the recipient MUST validate the sender's
-static public key `pkS` before use in `AuthDecap()`, applying the
-same validation rules as for other public key inputs. Validation failure
-MUST yield a `ValidationError`.
+!I-D.ietf-hpke-hpke}}, the recipient MUST validate the sender's static public
+key `pkS` before use in `AuthDecap()`, applying the same validation rules as for
+other public key inputs. Validation failure MUST yield a `ValidationError`.
 
 # Example Applications (Informative) {#sec-dh-akem}
 
-This section is informative. It illustrates how the authenticated modes
-defined in {{sec-ext}} may be applied, and may be developed as separate
-work. Any AEAD identifier from {{I-D.ietf-hpke-hpke}} may be used; the
-resulting context supports `Seal`, `Open`, and `Export`. Key generation
-follows `GenerateKeyPair` from {{I-D.ietf-hpke-hpke}}.
+This section is informative. It illustrates how the authenticated modes defined
+in {{sec-ext}} can be used.  Any AEAD identifier from {{I-D.ietf-hpke-hpke}} may
+be used; the resulting context supports `Seal()`, `Open()`, and `Export()`.
+Key generation follows `GenerateKeyPair()` from {{I-D.ietf-hpke-hpke}}.
 
-The modes may be used directly via their Setup functions: for
-`mode_auth`, the sender calls `SetupAuthS(pkR, info, skS)` and the
-receiver calls `SetupAuthR(enc, skR, info, pkS)`; for `mode_auth_psk`,
-the sender calls `SetupAuthPSKS` and the receiver calls `SetupAuthPSKR`,
-with a shared PSK and PSK identifier, as defined in {{sec-setup}}.
+The modes may be used directly via their setup functions.  For `mode_auth`, the
+sender calls `SetupAuthS(pkR, info, skS)` and the receiver calls
+`SetupAuthR(enc, skR, info, pkS)`.  For `mode_auth_psk`, the sender calls
+`SetupAuthPSKS()` and the receiver calls `SetupAuthPSKR()`, with a shared PSK
+and PSK identifier, as defined in {{sec-setup}}.
 
-## Hybrid PQ/T Profile (mode_auth_psk with PQ-KEM PSK) {#sec-hybrid}
+## Hybrid PQ/T Profile (`mode_auth_psk` with PQ-KEM PSK) {#sec-hybrid}
 
 The following terms are used in this section:
 
-- **PQ-KEM**: a post-quantum KEM, e.g., ML-KEM {{FIPS203}} or an
+- **PQ-KEM:** a post-quantum KEM, e.g., ML-KEM {{FIPS203}} or an
   algorithm from {{?I-D.ietf-hpke-pq}}.
 - `PQKEM.Encap(pkR_pq)`: PQ-KEM encapsulation; returns `(ss_pq, enc_pq)`.
 - `PQKEM.Decap(enc_pq, skR_pq)`: PQ-KEM decapsulation; returns `ss_pq`.
 - `Nenc_pq`: the fixed ciphertext length of the chosen PQ-KEM, in bytes.
 
-The sender encapsulates a PQ-KEM to the receiver's PQ public key
-`pkR_pq`, using the resulting shared secret `ss_pq` as the HPKE PSK
-and the PQ ciphertext `enc_pq` as the PSK identifier. The receiver's PQ
-public key `pkR_pq` is included in `info` to bind it to the key
-schedule. The combined encapsulation is `concat(enc_dh, enc_pq)`; `Nenc`
-bytes are parsed as `enc_dh` and the remaining `Nenc_pq` bytes as
-`enc_pq`.
+The sender encapsulates a PQ-KEM to the receiver's PQ public key `pkR_pq`, using
+the resulting shared secret `ss_pq` as the HPKE PSK and the PQ ciphertext
+`enc_pq` as the PSK identifier. The receiver's PQ public key `pkR_pq` is
+included in `info` to bind it to the key schedule. The combined encapsulation is
+`concat(enc_dh, enc_pq)`; `Nenc` bytes are parsed as `enc_dh` and the remaining
+`Nenc_pq` bytes as `enc_pq`.
 
 ~~~
 def HybridSetupS(pkR, pkR_pq, skS, info):
@@ -282,76 +279,71 @@ def HybridSetupR(enc, skR, skR_pq, pkR_pq, pkS, info):
 ~~~
 
 Implementations should verify `len(enc) == Nenc + Nenc_pq` and reject
-encapsulations of any other length. A fresh `(ss_pq, enc_pq)` pair
-should be generated for each encapsulation; reuse of a prior `enc_pq`
-is prohibited. The `suite_id` in the HPKE key schedule reflects only the
-classical ciphersuite `(KEM_ID, KDF_ID, AEAD_ID)`; the PQ-KEM algorithm
-identity should be conveyed via application-layer framing or the `info`
-parameter when multiple PQ-KEM algorithms are supported.
+encapsulations of any other length. A fresh `(ss_pq, enc_pq)` pair should be
+generated for each encapsulation; reuse of a prior `enc_pq` is prohibited. The
+`suite_id` in the HPKE key schedule reflects only the classical ciphersuite
+`(KEM_ID, KDF_ID, AEAD_ID)`; the PQ-KEM algorithm identity should be conveyed
+via application-layer framing or the `info` parameter when multiple PQ-KEM
+algorithms are supported.
 
-**Hybrid confidentiality.** `KeyScheduleS`/`KeyScheduleR` delegate to
-`CombineSecrets`, for which {{!I-D.ietf-hpke-hpke}} defines two
-variants. In `CombineSecrets_TwoStage`, the combination is
-`secret = LabeledExtract(dhkem_shared_secret, "secret", psk)`,
-equivalent to `HKDF-Extract(salt = dhkem_shared_secret, IKM = ss_pq)`
-{{RFC5869}}. In `CombineSecrets_OneStage`, `dhkem_shared_secret` and
-`psk` are length-prefixed and concatenated before a single
-`LabeledDerive` call. In both cases, `dhkem_shared_secret` and `ss_pq`
-enter the combination as independent inputs. The intended design
-property is that `secret` remains pseudorandom as long as at least one
-of the two inputs is — meaning an adversary would need to attack both
-the classical DH-based component and the PQ-KEM to recover `secret`.
-Whether this property holds formally for a specific `CombineSecrets`
-variant depends on that variant's security analysis, which is outside
-the scope of this document. Authentication remains entirely classical;
-a quantum adversary that breaks the DH assumption can also forge sender
-authentication, so post-quantum sender authentication would require an
-additional PQ signature. Note that {{Alwen2023}} describes a related
-hybrid construction in which a PQ *AKEM* (rather than a plain KEM) is
-used to generate the PSK, which would additionally provide post-quantum
-sender authentication; that stronger construction is outside the scope
-of this document.
+**Hybrid confidentiality.** `KeyScheduleS()`/`KeyScheduleR()` delegate to
+`CombineSecrets`, for which {{!I-D.ietf-hpke-hpke}} defines two variants. In
+`CombineSecrets_TwoStage()`, the combination is `secret =
+LabeledExtract(dhkem_shared_secret, "secret", psk)`, equivalent to
+`HKDF-Extract(salt = dhkem_shared_secret, IKM = ss_pq)` {{?RFC5869}}. In
+`CombineSecrets_OneStage()`, `dhkem_shared_secret` and `psk` are length-prefixed
+and concatenated before a single `LabeledDerive()` call. In both cases,
+`dhkem_shared_secret` and `ss_pq` enter the combination as independent inputs.
+The intended design property is that `secret` remains pseudorandom as long as at
+least one of the two inputs is---meaning an adversary would need to attack both
+the classical DH-based component and the PQ-KEM to recover `secret`.  Whether
+this property holds formally for a specific `CombineSecrets` variant depends on
+that variant's security analysis, which is outside the scope of this document.
+Authentication remains entirely classical; a quantum adversary that breaks the
+DH assumption can also forge sender authentication, so post-quantum sender
+authentication would require an additional PQ signature. Note that {{Alwen2023}}
+describes a related hybrid construction in which a PQ *AKEM* (rather than a
+plain KEM) is used to generate the PSK, which would additionally provide
+post-quantum sender authentication; that stronger construction is outside the
+scope of this document.
 
 **PSK freshness.** The ML-KEM shared secret `ss_pq` satisfies the
-entropy requirement in {{Section 9.5 of !I-D.ietf-hpke-hpke}} (32 bytes
-of uniform randomness). The prohibition on `enc_pq` reuse above ensures
-a fresh PSK per session.
+entropy requirement in {{Section 9.5 of !I-D.ietf-hpke-hpke}} (32 bytes of
+uniform randomness). The prohibition on `enc_pq` reuse above ensures a fresh PSK
+per session.
 
 # HPKE-Auth Profiles (Informative) {#sec-suites}
 
-This section is informative. The profiles below are suggested KEM and
-KDF parameter sets for the example applications in {{sec-dh-akem}}; they
-are not registered by this document. Because `AEAD_ID` is selected by
-the application, these are parameter sets, not fully determined
-ciphersuites. `KEM_ID` and `KDF_ID` are drawn from the registries in
-{{I-D.ietf-hpke-hpke}}.
+This section is informative. The profiles below are suggested KEM and KDF
+parameter sets for the example applications in {{sec-dh-akem}}; they are not
+registered by this document. Because `AEAD_ID` is selected by the application,
+these are parameter sets, not fully determined ciphersuites. `KEM_ID` and
+`KDF_ID` are drawn from the registries in {{I-D.ietf-hpke-hpke}}.
 
-| Profile                                     | KEM_ID | KDF_ID | PQKEM       | Nenc | Nenc_pq |
-| ------------------------------------------- | ------ | ------ | ----------- | ---- | ------- |
-| HPKE-Auth-X25519-SHA256                     | 0x0020 | 0x0001 | —           | 32   | —       |
-| HPKE-Auth-P256-SHA256                       | 0x0010 | 0x0001 | —           | 65   | —       |
-| HPKE-Auth-X448-SHA512                       | 0x0021 | 0x0003 | —           | 56   | —       |
-| HPKE-Auth-Hybrid-X25519-SHA256-MLKEM768     | 0x0020 | 0x0001 | ML-KEM-768  | 32   | 1088    |
-| HPKE-Auth-Hybrid-X25519-SHA256-MLKEM1024    | 0x0020 | 0x0001 | ML-KEM-1024 | 32   | 1568    |
-| HPKE-Auth-Hybrid-P256-SHA256-MLKEM768       | 0x0010 | 0x0001 | ML-KEM-768  | 65   | 1088    |
+| Profile                                    | `KEM_ID` | `KDF_ID` | `PQKEM`     | `Nenc` | `Nenc_pq` |
+| ------------------------------------------ | -------- | -------- | ----------- | ----- | ---------- |
+| `HPKE-Auth-X25519-SHA256`                  | `0x0020` | `0x0001` | ---         | 32    | ---        |
+| `HPKE-Auth-P256-SHA256`                    | `0x0010` | `0x0001` | ---         | 65    | ---        |
+| `HPKE-Auth-X448-SHA512`                    | `0x0021` | `0x0003` | ---         | 56    | ---        |
+| `HPKE-Auth-Hybrid-X25519-SHA256-MLKEM768`  | `0x0020` | `0x0001` | ML-KEM-768  | 32    | 1088       |
+| `HPKE-Auth-Hybrid-X25519-SHA256-MLKEM1024` | `0x0020` | `0x0001` | ML-KEM-1024 | 32    | 1568       |
+| `HPKE-Auth-Hybrid-P256-SHA256-MLKEM768`    | `0x0010` | `0x0001` | ML-KEM-768  | 65    | 1088       |
 
-ML-KEM parameters are from {{FIPS203}}. HPKE-Auth-Hybrid-X25519-SHA256-MLKEM768
-is the suggested default hybrid profile, yielding a combined
-encapsulation of 1120 bytes.
+ML-KEM parameters are from {{FIPS203}}.
+`HPKE-Auth-Hybrid-X25519-SHA256-MLKEM768` is the suggested default hybrid
+profile, yielding a combined encapsulation of 1120 bytes.
 
 # Security Considerations {#sec-security}
 
-The sender-authentication and key-compromise impersonation (KCI)
-properties of `mode_auth` and `mode_auth_psk` are as described in
-{{Sections 9.1 and 9.1.1 of ?RFC9180}}, which apply without change to
-the functions defined in {{sec-ext}}. Security properties specific to
-the hybrid PQ/T construction are discussed informatively in
-{{sec-hybrid}}.
+The sender-authentication and key-compromise impersonation (KCI) properties of
+`mode_auth` and `mode_auth_psk` are as described in {{Sections 9.1 and 9.1.1 of
+?RFC9180}}, which apply without change to the functions defined in {{sec-ext}}.
+Security properties specific to the hybrid PQ/T construction are discussed
+informatively in {{sec-hybrid}}.
 
-The formal security of the DHKEM authenticated modes under the Gap-DH
-assumption is established in {{Alwen2021}}. The security of
-`mode_auth_psk` — termed `AuthPSK` in {{Alwen2023}} — is analyzed there
-as the `pskAPKE` scheme.
+The formal security of the DHKEM authenticated modes under the Gap-DH assumption
+is established in {{Alwen2021}}. The security of `mode_auth_psk`---termed
+`AuthPSK` in {{Alwen2023}}---is analyzed there as the `pskAPKE` scheme.
 
 # IANA Considerations {#sec-iana}
 
