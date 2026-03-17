@@ -5,7 +5,7 @@
 Network Working Group                                      C. Myers, Ed.
 Internet-Draft                                                R. S., Ed.
 Intended status: Standards Track         Freedom of the Press Foundation
-Expires: 17 September 2026                                 16 March 2026
+Expires: 18 September 2026                                 17 March 2026
 
 
                       Authenticated Modes for HPKE
@@ -35,7 +35,7 @@ About This Document
    https://datatracker.ietf.org/doc/draft-ms-hpke-auth-modes/.
 
    Source for this draft and an issue tracker can be found at
-   https://github.com/cfm/draft-dh-akem-extension.
+   https://github.com/cfm/draft-ms-hpke-auth-modes.
 
 Status of This Memo
 
@@ -52,7 +52,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 17 September 2026.
+   This Internet-Draft will expire on 18 September 2026.
 
 Copyright Notice
 
