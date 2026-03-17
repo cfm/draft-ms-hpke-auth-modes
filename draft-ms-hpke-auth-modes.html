@@ -5,27 +5,26 @@
 <meta content="Common,Latin" name="scripts">
 <meta content="initial-scale=1.0" name="viewport">
 <title>Authenticated Modes for HPKE</title>
-<meta content="Cory Myers" name="author">
+<meta content="Cory Francis Myers" name="author">
 <meta content="Rowen S." name="author">
 <meta content="
-        is a standards-track Internet-Draft that
-supersedes the informational   and omits  mode_auth  (0x02)
-and  mode_auth_psk  (0x03). This document restores those two modes as a
-strict extension, requiring only the addition of  AuthEncap / AuthDecap 
-to the DHKEM, four Setup functions, and an update to  VerifyPSKInputs .
-The extension does not alter the externally observable behavior of
-existing HPKE modes. 
-       This document also illustrates, informatively, how the restored modes
-may be applied. One such application uses  mode_auth_psk  with a
-post-quantum KEM (PQ-KEM) shared secret as the PSK, providing hybrid
-PQ/T confidentiality. This material is provided to motivate the
-extension and may be developed as separate work. 
+       The standards-track   supersedes the informational
+ , omitting its authenticated modes  mode_auth  and  mode_auth_psk .
+This document restores those two modes as a strict extension, requiring only the
+addition of  AuthEncap() / AuthDecap()  to the DHKEM, the definition of four
+setup functions, and a change in  VerifyPSKInputs() .  The extension does not
+alter the externally observable behavior of the existing HPKE modes standardized
+in  . 
+       This document also illustrates, informatively, how the restored modes can be
+used. One such application uses  mode_auth_psk  with a post-quantum KEM (PQ-KEM)
+shared secret as the PSK, providing hybrid PQ/T confidentiality. This material
+is provided to motivate the extension and may be developed as separate work. 
     " name="description">
 <meta content="xml2rfc 3.32.0" name="generator">
 <meta content="AKEM" name="keyword">
-<meta content="HPKE" name="keyword">
 <meta content="authenticated KEM" name="keyword">
-<meta content="implicit authentication" name="keyword">
+<meta content="DHKEM" name="keyword">
+<meta content="HPKE" name="keyword">
 <meta content="draft-ms-hpke-auth-modes-latest" name="ietf.draft">
 <!-- Generator version information:
   xml2rfc 3.32.0
@@ -1086,7 +1085,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
-      <div class="author-name">C. Myers, <span class="editor">Ed.</span>
+      <div class="author-name">C. F. Myers, <span class="editor">Ed.</span>
 </div>
 <div class="org">Freedom of the Press Foundation</div>
 </div>
@@ -1101,18 +1100,17 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <h1 id="title">Authenticated Modes for HPKE</h1>
 <section id="section-abstract">
       <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
-<p id="section-abstract-1"><span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span> is a standards-track Internet-Draft that
-supersedes the informational <span>[<a href="#RFC9180" class="cite xref">RFC9180</a>]</span> and omits <code>mode_auth</code> (0x02)
-and <code>mode_auth_psk</code> (0x03). This document restores those two modes as a
-strict extension, requiring only the addition of <code>AuthEncap</code>/<code>AuthDecap</code>
-to the DHKEM, four Setup functions, and an update to <code>VerifyPSKInputs</code>.
-The extension does not alter the externally observable behavior of
-existing HPKE modes.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
-<p id="section-abstract-2">This document also illustrates, informatively, how the restored modes
-may be applied. One such application uses <code>mode_auth_psk</code> with a
-post-quantum KEM (PQ-KEM) shared secret as the PSK, providing hybrid
-PQ/T confidentiality. This material is provided to motivate the
-extension and may be developed as separate work.<a href="#section-abstract-2" class="pilcrow">¶</a></p>
+<p id="section-abstract-1">The standards-track <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span> supersedes the informational
+<span>[<a href="#RFC9180" class="cite xref">RFC9180</a>]</span>, omitting its authenticated modes <code>mode_auth</code> and <code>mode_auth_psk</code>.
+This document restores those two modes as a strict extension, requiring only the
+addition of <code>AuthEncap()</code>/<code>AuthDecap()</code> to the DHKEM, the definition of four
+setup functions, and a change in <code>VerifyPSKInputs()</code>.  The extension does not
+alter the externally observable behavior of the existing HPKE modes standardized
+in <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span>.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+<p id="section-abstract-2">This document also illustrates, informatively, how the restored modes can be
+used. One such application uses <code>mode_auth_psk</code> with a post-quantum KEM (PQ-KEM)
+shared secret as the PSK, providing hybrid PQ/T confidentiality. This material
+is provided to motivate the extension and may be developed as separate work.<a href="#section-abstract-2" class="pilcrow">¶</a></p>
 </section>
 <section class="note rfcEditorRemove" id="section-note.1">
       <h2 id="name-about-this-document">
@@ -1185,10 +1183,10 @@ extension and may be developed as separate work.<a href="#section-abstract-2" cl
                 <p id="section-toc.1-1.3.2.1.1" class="keepWithNext"><a href="#section-3.1" class="auto internal xref">3.1</a>.  <a href="#name-mode-identifiers" class="internal xref">Mode Identifiers</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2">
-                <p id="section-toc.1-1.3.2.2.1"><a href="#section-3.2" class="auto internal xref">3.2</a>.  <a href="#name-dhkem-extension-authencap-a" class="internal xref">DHKEM Extension: AuthEncap and AuthDecap</a></p>
+                <p id="section-toc.1-1.3.2.2.1"><a href="#section-3.2" class="auto internal xref">3.2</a>.  <a href="#name-dhkem-extension-authencap-a" class="internal xref">DHKEM Extension: <code>AuthEncap()</code> and <code>AuthDecap()</code></a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.3">
-                <p id="section-toc.1-1.3.2.3.1"><a href="#section-3.3" class="auto internal xref">3.3</a>.  <a href="#name-verifypskinputs-update" class="internal xref">VerifyPSKInputs Update</a></p>
+                <p id="section-toc.1-1.3.2.3.1"><a href="#section-3.3" class="auto internal xref">3.3</a>.  <a href="#name-verifypskinputs" class="internal xref"><code>VerifyPSKInputs</code></a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.4">
                 <p id="section-toc.1-1.3.2.4.1"><a href="#section-3.4" class="auto internal xref">3.4</a>.  <a href="#name-setup-functions" class="internal xref">Setup Functions</a></p>
@@ -1202,7 +1200,7 @@ extension and may be developed as separate work.<a href="#section-abstract-2" cl
             <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-example-applications-inform" class="internal xref">Example Applications (Informative)</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1">
-                <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="auto internal xref">4.1</a>.  <a href="#name-hybrid-pq-t-profile-mode_au" class="internal xref">Hybrid PQ/T Profile (mode_auth_psk with PQ-KEM PSK)</a></p>
+                <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="auto internal xref">4.1</a>.  <a href="#name-hybrid-pq-t-profile-mode_au" class="internal xref">Hybrid PQ/T Profile (<code>mode_auth_psk</code> with PQ-KEM PSK)</a></p>
 </li>
             </ul>
 </li>
@@ -1241,30 +1239,26 @@ extension and may be developed as separate work.<a href="#section-abstract-2" cl
       <h2 id="name-introduction">
 <a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
       </h2>
-<p id="section-1-1"><span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span> is the standards-track successor to the
-informational <span>[<a href="#RFC9180" class="cite xref">RFC9180</a>]</span> and omits <code>mode_auth</code> and <code>mode_auth_psk</code> to
-reduce the surface of the core specification. However, many protocol
-designs require an authenticated key encapsulation mechanism (AKEM) — a
-KEM whose shared secret is implicitly bound to the sender's static
-private key — without requiring a full authenticated encryption context.
-The DHKEM construction in <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span> already contains all
-the primitives needed: <code>AuthEncap</code> computes a static-static DH value
-<code>DH(skS, pkR)</code> alongside the ephemeral-static value and mixes both into
-the key derivation, binding the output to the sender's key pair.<a href="#section-1-1" class="pilcrow">¶</a></p>
-<p id="section-1-2">The normative core of this document is narrow: it restores <code>mode_auth</code>
-and <code>mode_auth_psk</code> as a strict extension to <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span>,
-requiring only <code>AuthEncap</code>/<code>AuthDecap</code> on the DHKEM, four Setup
-functions, and an updated <code>VerifyPSKInputs</code>. The externally observable
-behavior of existing HPKE modes is unchanged.<a href="#section-1-2" class="pilcrow">¶</a></p>
-<p id="section-1-3"><a href="#sec-dh-akem" class="auto internal xref">Section 4</a> and <a href="#sec-suites" class="auto internal xref">Section 5</a> describe, informatively, how the
-restored modes might be applied, including a construction that layers
-a post-quantum KEM shared secret as the PSK to achieve hybrid PQ/T
-confidentiality. That material is provided to motivate the extension
+<p id="section-1-1"><span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span> is the standards-track successor to the informational
+<span>[<a href="#RFC9180" class="cite xref">RFC9180</a>]</span> and omits the authenticated modes <code>mode_auth</code> and <code>mode_auth_psk</code>
+to simplify the standard. However, some protocols require an authenticated
+key-encapsulation mechanism (AKEM)---a KEM whose shared secret is implicitly
+bound to the sender's static private key---without requiring a full
+authenticated encryption context.  The DHKEM construction in
+<span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span> already contains all the primitives needed:
+<code>AuthEncap()</code> computes a static-static DH value <code>DH(skS, pkR)</code> alongside the
+ephemeral-static value and mixes both into the key derivation, binding the
+output to the sender's key pair.<a href="#section-1-1" class="pilcrow">¶</a></p>
+<p id="section-1-2">The normative portion of this document is small.  It restores <code>mode_auth</code> and
+<code>mode_auth_psk</code> as a strict extension to <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span>, requiring only
+<code>AuthEncap()</code>/<code>AuthDecap()</code> on the DHKEM, four setup functions, and a modified
+<code>VerifyPSKInputs()</code>. The externally observable behavior of existing HPKE modes
+is unchanged.<a href="#section-1-2" class="pilcrow">¶</a></p>
+<p id="section-1-3"><a href="#sec-dh-akem" class="auto internal xref">Section 4</a> and <a href="#sec-suites" class="auto internal xref">Section 5</a> describe, informatively, how the restored
+modes can be used, including a construction that layers a post-quantum KEM
+shared secret as the PSK to achieve hybrid PQ/T confidentiality as defined in
+<span><a href="https://rfc-editor.org/rfc/rfc9794#section-5" class="relref">Section 5</a> of [<a href="#RFC9794" class="cite xref">RFC9794</a>]</span>. That material is provided to motivate the extension
 and may be developed as separate work.<a href="#section-1-3" class="pilcrow">¶</a></p>
-<p id="section-1-4">Implicit authentication does not provide non-repudiation, and the
-authenticated modes inherit the Key Compromise Impersonation (KCI)
-vulnerability common to all DH-based authentication schemes; both
-limitations are discussed in <a href="#sec-security" class="auto internal xref">Section 6</a>.<a href="#section-1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="conventions-and-definitions">
@@ -1276,12 +1270,12 @@ limitations are discussed in <a href="#sec-security" class="auto internal xref">
 "<span class="bcp14">MAY</span>", and "<span class="bcp14">OPTIONAL</span>" in this document are to be interpreted as
 described in BCP 14 <span>[<a href="#RFC2119" class="cite xref">RFC2119</a>]</span> <span>[<a href="#RFC8174" class="cite xref">RFC8174</a>]</span> when, and only when, they
 appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶</a></p>
-<p id="section-2-2">Terms from <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span> are used without redefinition. The
-following additional term is used herein:<a href="#section-2-2" class="pilcrow">¶</a></p>
+<p id="section-2-2">Terms from <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span> are used without redefinition. The following
+additional term is used herein:<a href="#section-2-2" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-2-3.1">
-          <p id="section-2-3.1.1"><strong>AKEM</strong>: a KEM whose encapsulation additionally takes the sender's
-static private key and implicitly binds the shared secret to it.<a href="#section-2-3.1.1" class="pilcrow">¶</a></p>
+          <p id="section-2-3.1.1"><strong>AKEM:</strong> a KEM whose encapsulation additionally takes the sender's static
+private key and implicitly binds the shared secret to it.<a href="#section-2-3.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 </section>
@@ -1291,18 +1285,19 @@ static private key and implicitly binds the shared secret to it.<a href="#sectio
       <h2 id="name-authenticated-mode-extensio">
 <a href="#section-3" class="section-number selfRef">3. </a><a href="#name-authenticated-mode-extensio" class="section-name selfRef">Authenticated Mode Extensions to <span class="cite xref">[I-D.ietf-hpke-hpke]</span></a>
       </h2>
-<p id="section-3-1">This section specifies the additions to <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span> required
-to restore <code>mode_auth</code> and <code>mode_auth_psk</code>. These extensions
-are defined so that the externally observable behavior of existing HPKE
-modes is unchanged, although this document updates the <code>VerifyPSKInputs</code>
-procedure in <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span>.<a href="#section-3-1" class="pilcrow">¶</a></p>
+<p id="section-3-1">This section specifies the additions to <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span> required to
+restore <code>mode_auth</code> and <code>mode_auth_psk</code>. These extensions are defined so that
+the externally observable behavior of the existing HPKE modes is unchanged,
+although this document modifies the <code>VerifyPSKInputs()</code> procedure in
+<span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span>.<a href="#section-3-1" class="pilcrow">¶</a></p>
 <div id="mode-identifiers">
 <section id="section-3.1">
         <h3 id="name-mode-identifiers">
 <a href="#section-3.1" class="section-number selfRef">3.1. </a><a href="#name-mode-identifiers" class="section-name selfRef">Mode Identifiers</a>
         </h3>
-<p id="section-3.1-1">The reserved entries for values 0x02 and 0x03 in Table 1 of
-<span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span> are replaced with the following mode identifiers:<a href="#section-3.1-1" class="pilcrow">¶</a></p>
+<p id="section-3.1-1">The reserved entries for values <code>0x02</code> and <code>0x03</code> in Table 1 of
+<span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span> are replaced with the following mode identifiers, as
+originally specified in Table 1 of <span>[<a href="#RFC9180" class="cite xref">RFC9180</a>]</span>:<a href="#section-3.1-1" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-3.1-2">
 <pre>
 mode_auth     = 0x02
@@ -1314,10 +1309,11 @@ mode_auth_psk = 0x03
 <div id="sec-authencap">
 <section id="section-3.2">
         <h3 id="name-dhkem-extension-authencap-a">
-<a href="#section-3.2" class="section-number selfRef">3.2. </a><a href="#name-dhkem-extension-authencap-a" class="section-name selfRef">DHKEM Extension: AuthEncap and AuthDecap</a>
+<a href="#section-3.2" class="section-number selfRef">3.2. </a><a href="#name-dhkem-extension-authencap-a" class="section-name selfRef">DHKEM Extension: <code>AuthEncap()</code> and <code>AuthDecap()</code></a>
         </h3>
-<p id="section-3.2-1">The following two functions are added to the DHKEM, extending it to an
-AKEM. All helper functions (<code>GenerateKeyPair</code>, <code>DH</code>, <code>SerializePublicKey</code>,
+<p id="section-3.2-1">The following two functions are added to the DHKEM, extending it to an AKEM.
+They are reproduced verbatim from <span><a href="https://rfc-editor.org/rfc/rfc9180#section-4.1" class="relref">Section 4.1</a> of [<a href="#RFC9180" class="cite xref">RFC9180</a>]</span>. All helper
+functions (<code>GenerateKeyPair</code>, <code>DH</code>, <code>SerializePublicKey</code>,
 <code>DeserializePublicKey</code>, <code>ExtractAndExpand</code>) are as defined in
 <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span>.<a href="#section-3.2-1" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-3.2-2">
@@ -1326,36 +1322,41 @@ def AuthEncap(pkR, skS):
   skE, pkE = GenerateKeyPair()
   dh = concat(DH(skE, pkR), DH(skS, pkR))
   enc = SerializePublicKey(pkE)
+
   pkRm = SerializePublicKey(pkR)
   pkSm = SerializePublicKey(pk(skS))
+
   kem_context = concat(enc, pkRm, pkSm)
   shared_secret = ExtractAndExpand(dh, kem_context)
+
   return shared_secret, enc
 
 def AuthDecap(enc, skR, pkS):
   pkE = DeserializePublicKey(enc)
   dh = concat(DH(skR, pkE), DH(skR, pkS))
+
   pkRm = SerializePublicKey(pk(skR))
   pkSm = SerializePublicKey(pkS)
   kem_context = concat(enc, pkRm, pkSm)
+
   shared_secret = ExtractAndExpand(dh, kem_context)
   return shared_secret
 </pre><a href="#section-3.2-2" class="pilcrow">¶</a>
 </div>
-<p id="section-3.2-3">Note that the AuthEncap() and AuthDecap() functions are vulnerable to
+<p id="section-3.2-3">Note that the <code>AuthEncap()</code> and <code>AuthDecap()</code> functions are vulnerable to
 key-compromise impersonation (KCI): the assurance that the shared secret was
 generated by the holder of the private key <code>skS</code> does not hold if the recipient
 private key <code>skR</code> is compromised. See <a href="#sec-security" class="auto internal xref">Section 6</a> for further discussion.<a href="#section-3.2-3" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="verifypskinputs-update">
+<div id="verifypskinputs">
 <section id="section-3.3">
-        <h3 id="name-verifypskinputs-update">
-<a href="#section-3.3" class="section-number selfRef">3.3. </a><a href="#name-verifypskinputs-update" class="section-name selfRef">VerifyPSKInputs Update</a>
+        <h3 id="name-verifypskinputs">
+<a href="#section-3.3" class="section-number selfRef">3.3. </a><a href="#name-verifypskinputs" class="section-name selfRef"><code>VerifyPSKInputs</code></a>
         </h3>
-<p id="section-3.3-1">The <code>VerifyPSKInputs</code> function defined in <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span> is
-extended to handle the two new modes. The updated function replaces the
-original:<a href="#section-3.3-1" class="pilcrow">¶</a></p>
+<p id="section-3.3-1">The <code>VerifyPSKInputs()</code> function defined in <span><a href="https://rfc-editor.org/rfc/rfc9180#section-5.1" class="relref">Section 5.1</a> of [<a href="#RFC9180" class="cite xref">RFC9180</a>]</span> and
+<span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span> is extended to handle the two new modes. The updated
+function replaces the original:<a href="#section-3.3-1" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-3.3-2">
 <pre>
 def VerifyPSKInputs(mode, psk, psk_id):
@@ -1363,6 +1364,7 @@ def VerifyPSKInputs(mode, psk, psk_id):
   got_psk_id = (psk_id != default_psk_id)
   if got_psk != got_psk_id:
     raise Exception("Inconsistent PSK inputs")
+
   if got_psk and mode in [mode_base, mode_auth]:
     raise Exception("PSK input provided when not needed")
   if (not got_psk) and mode in [mode_psk, mode_auth_psk]:
@@ -1370,8 +1372,8 @@ def VerifyPSKInputs(mode, psk, psk_id):
 </pre><a href="#section-3.3-2" class="pilcrow">¶</a>
 </div>
 <p id="section-3.3-3">The only change from the original is that <code>mode_base</code> is replaced by
-<code>[mode_base, mode_auth]</code> and <code>mode_psk</code> is replaced by
-<code>[mode_psk, mode_auth_psk]</code> in the final two guards.<a href="#section-3.3-3" class="pilcrow">¶</a></p>
+<code>[mode_base, mode_auth]</code> and <code>mode_psk</code> is replaced by <code>[mode_psk,
+mode_auth_psk]</code> in the final two guards.<a href="#section-3.3-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="sec-setup">
@@ -1379,9 +1381,8 @@ def VerifyPSKInputs(mode, psk, psk_id):
         <h3 id="name-setup-functions">
 <a href="#section-3.4" class="section-number selfRef">3.4. </a><a href="#name-setup-functions" class="section-name selfRef">Setup Functions</a>
         </h3>
-<p id="section-3.4-1">The following four Setup functions are added alongside those defined in
-<span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span>. <code>KeyScheduleS</code>/<code>KeyScheduleR</code> and
-<code>AuthEncap</code>/<code>AuthDecap</code> are as defined in <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span> and
+<p id="section-3.4-1">The following four setup functions are reproduced verbatim from Sections <a href="https://rfc-editor.org/rfc/rfc9180#section-5.1.3" class="relref">5.1.3</a> and <a href="https://rfc-editor.org/rfc/rfc9180#section-5.1.4" class="relref">5.1.4</a> of <span>[<a href="#RFC9180" class="cite xref">RFC9180</a>]</span>.  <code>KeyScheduleS()</code>/<code>KeyScheduleR()</code> and
+<code>AuthEncap()</code>/<code>AuthDecap()</code> are as defined in <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span> and
 <a href="#sec-authencap" class="auto internal xref">Section 3.2</a> respectively.<a href="#section-3.4-1" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-3.4-2">
 <pre>
@@ -1413,10 +1414,9 @@ def SetupAuthPSKR(enc, skR, info, psk, psk_id, pkS):
         <h3 id="name-input-validation-and-error-">
 <a href="#section-3.5" class="section-number selfRef">3.5. </a><a href="#name-input-validation-and-error-" class="section-name selfRef">Input Validation and Error Handling</a>
         </h3>
-<p id="section-3.5-1">In addition to the validation requirements in <span><a href="https://datatracker.ietf.org/doc/html/draft-ietf-hpke-hpke-03#section-7.1.4" class="relref">Section 7.1.4</a> of [<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span>, the recipient <span class="bcp14">MUST</span> validate the sender's
-static public key <code>pkS</code> before use in <code>AuthDecap()</code>, applying the
-same validation rules as for other public key inputs. Validation failure
-<span class="bcp14">MUST</span> yield a <code>ValidationError</code>.<a href="#section-3.5-1" class="pilcrow">¶</a></p>
+<p id="section-3.5-1">In addition to the validation requirements in <span><a href="https://datatracker.ietf.org/doc/html/draft-ietf-hpke-hpke-03#section-7.1.4" class="relref">Section 7.1.4</a> of [<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span>, the recipient <span class="bcp14">MUST</span> validate the sender's static public
+key <code>pkS</code> before use in <code>AuthDecap()</code>, applying the same validation rules as for
+other public key inputs. Validation failure <span class="bcp14">MUST</span> yield a <code>ValidationError</code>.<a href="#section-3.5-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -1426,25 +1426,24 @@ same validation rules as for other public key inputs. Validation failure
       <h2 id="name-example-applications-inform">
 <a href="#section-4" class="section-number selfRef">4. </a><a href="#name-example-applications-inform" class="section-name selfRef">Example Applications (Informative)</a>
       </h2>
-<p id="section-4-1">This section is informative. It illustrates how the authenticated modes
-defined in <a href="#sec-ext" class="auto internal xref">Section 3</a> may be applied, and may be developed as separate
-work. Any AEAD identifier from <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span> may be used; the
-resulting context supports <code>Seal</code>, <code>Open</code>, and <code>Export</code>. Key generation
-follows <code>GenerateKeyPair</code> from <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span>.<a href="#section-4-1" class="pilcrow">¶</a></p>
-<p id="section-4-2">The modes may be used directly via their Setup functions: for
-<code>mode_auth</code>, the sender calls <code>SetupAuthS(pkR, info, skS)</code> and the
-receiver calls <code>SetupAuthR(enc, skR, info, pkS)</code>; for <code>mode_auth_psk</code>,
-the sender calls <code>SetupAuthPSKS</code> and the receiver calls <code>SetupAuthPSKR</code>,
-with a shared PSK and PSK identifier, as defined in <a href="#sec-setup" class="auto internal xref">Section 3.4</a>.<a href="#section-4-2" class="pilcrow">¶</a></p>
+<p id="section-4-1">This section is informative. It illustrates how the authenticated modes defined
+in <a href="#sec-ext" class="auto internal xref">Section 3</a> can be used.  Any AEAD identifier from <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span> may
+be used; the resulting context supports <code>Seal()</code>, <code>Open()</code>, and <code>Export()</code>.
+Key generation follows <code>GenerateKeyPair()</code> from <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span>.<a href="#section-4-1" class="pilcrow">¶</a></p>
+<p id="section-4-2">The modes may be used directly via their setup functions.  For <code>mode_auth</code>, the
+sender calls <code>SetupAuthS(pkR, info, skS)</code> and the receiver calls
+<code>SetupAuthR(enc, skR, info, pkS)</code>.  For <code>mode_auth_psk</code>, the sender calls
+<code>SetupAuthPSKS()</code> and the receiver calls <code>SetupAuthPSKR()</code>, with a shared PSK
+and PSK identifier, as defined in <a href="#sec-setup" class="auto internal xref">Section 3.4</a>.<a href="#section-4-2" class="pilcrow">¶</a></p>
 <div id="sec-hybrid">
 <section id="section-4.1">
         <h3 id="name-hybrid-pq-t-profile-mode_au">
-<a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-hybrid-pq-t-profile-mode_au" class="section-name selfRef">Hybrid PQ/T Profile (mode_auth_psk with PQ-KEM PSK)</a>
+<a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-hybrid-pq-t-profile-mode_au" class="section-name selfRef">Hybrid PQ/T Profile (<code>mode_auth_psk</code> with PQ-KEM PSK)</a>
         </h3>
 <p id="section-4.1-1">The following terms are used in this section:<a href="#section-4.1-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-4.1-2.1">
-            <p id="section-4.1-2.1.1"><strong>PQ-KEM</strong>: a post-quantum KEM, e.g., ML-KEM <span>[<a href="#FIPS203" class="cite xref">FIPS203</a>]</span> or an
+            <p id="section-4.1-2.1.1"><strong>PQ-KEM:</strong> a post-quantum KEM, e.g., ML-KEM <span>[<a href="#FIPS203" class="cite xref">FIPS203</a>]</span> or an
 algorithm from <span>[<a href="#I-D.ietf-hpke-pq" class="cite xref">I-D.ietf-hpke-pq</a>]</span>.<a href="#section-4.1-2.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-4.1-2.2">
@@ -1457,13 +1456,12 @@ algorithm from <span>[<a href="#I-D.ietf-hpke-pq" class="cite xref">I-D.ietf-hpk
             <p id="section-4.1-2.4.1"><code>Nenc_pq</code>: the fixed ciphertext length of the chosen PQ-KEM, in bytes.<a href="#section-4.1-2.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-4.1-3">The sender encapsulates a PQ-KEM to the receiver's PQ public key
-<code>pkR_pq</code>, using the resulting shared secret <code>ss_pq</code> as the HPKE PSK
-and the PQ ciphertext <code>enc_pq</code> as the PSK identifier. The receiver's PQ
-public key <code>pkR_pq</code> is included in <code>info</code> to bind it to the key
-schedule. The combined encapsulation is <code>concat(enc_dh, enc_pq)</code>; <code>Nenc</code>
-bytes are parsed as <code>enc_dh</code> and the remaining <code>Nenc_pq</code> bytes as
-<code>enc_pq</code>.<a href="#section-4.1-3" class="pilcrow">¶</a></p>
+<p id="section-4.1-3">The sender encapsulates a PQ-KEM to the receiver's PQ public key <code>pkR_pq</code>, using
+the resulting shared secret <code>ss_pq</code> as the HPKE PSK and the PQ ciphertext
+<code>enc_pq</code> as the PSK identifier. The receiver's PQ public key <code>pkR_pq</code> is
+included in <code>info</code> to bind it to the key schedule. The combined encapsulation is
+<code>concat(enc_dh, enc_pq)</code>; <code>Nenc</code> bytes are parsed as <code>enc_dh</code> and the remaining
+<code>Nenc_pq</code> bytes as <code>enc_pq</code>.<a href="#section-4.1-3" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-4.1-4">
 <pre>
 def HybridSetupS(pkR, pkR_pq, skS, info):
@@ -1478,34 +1476,36 @@ def HybridSetupR(enc, skR, skR_pq, pkR_pq, pkS, info):
 </pre><a href="#section-4.1-4" class="pilcrow">¶</a>
 </div>
 <p id="section-4.1-5">Implementations should verify <code>len(enc) == Nenc + Nenc_pq</code> and reject
-encapsulations of any other length. A fresh <code>(ss_pq, enc_pq)</code> pair
-should be generated for each encapsulation; reuse of a prior <code>enc_pq</code>
-is prohibited. The <code>suite_id</code> in the HPKE key schedule reflects only the
-classical ciphersuite <code>(KEM_ID, KDF_ID, AEAD_ID)</code>; the PQ-KEM algorithm
-identity should be conveyed via application-layer framing or the <code>info</code>
-parameter when multiple PQ-KEM algorithms are supported.<a href="#section-4.1-5" class="pilcrow">¶</a></p>
-<p id="section-4.1-6"><strong>Hybrid confidentiality.</strong> <code>KeyScheduleS</code>/<code>KeyScheduleR</code> delegate to
-<code>CombineSecrets</code>, for which <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span> defines two
-variants. In <code>CombineSecrets_TwoStage</code>, the combination is
-<code>secret = LabeledExtract(dhkem_shared_secret, "secret", psk)</code>,
-equivalent to <code>HKDF-Extract(salt = dhkem_shared_secret, IKM = ss_pq)</code>
-          <span>[<a href="#RFC5869" class="cite xref">RFC5869</a>]</span>. In <code>CombineSecrets_OneStage</code>, <code>dhkem_shared_secret</code> and
-<code>psk</code> are length-prefixed and concatenated before a single
-<code>LabeledDerive</code> call. In both cases, <code>dhkem_shared_secret</code> and <code>ss_pq</code>
-enter the combination as independent inputs. The intended design
-property is that <code>secret</code> remains pseudorandom as long as at least one
-of the two inputs is — meaning an adversary would need to attack both
-the classical DH-based component and the PQ-KEM to recover <code>secret</code>.
-Whether this property holds formally for a specific <code>CombineSecrets</code>
-variant depends on that variant's security analysis, which is outside
-the scope of this document. Authentication remains entirely classical;
-a quantum adversary that breaks the DH assumption can also forge sender
-authentication, so post-quantum sender authentication would require an
-additional PQ signature.<a href="#section-4.1-6" class="pilcrow">¶</a></p>
+encapsulations of any other length. A fresh <code>(ss_pq, enc_pq)</code> pair should be
+generated for each encapsulation; reuse of a prior <code>enc_pq</code> is prohibited. The
+<code>suite_id</code> in the HPKE key schedule reflects only the classical ciphersuite
+<code>(KEM_ID, KDF_ID, AEAD_ID)</code>; the PQ-KEM algorithm identity should be conveyed
+via application-layer framing or the <code>info</code> parameter when multiple PQ-KEM
+algorithms are supported.<a href="#section-4.1-5" class="pilcrow">¶</a></p>
+<p id="section-4.1-6"><strong>Hybrid confidentiality.</strong> <code>KeyScheduleS()</code>/<code>KeyScheduleR()</code> delegate to
+<code>CombineSecrets</code>, for which <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span> defines two variants. In
+<code>CombineSecrets_TwoStage()</code>, the combination is <code>secret =
+LabeledExtract(dhkem_shared_secret, "secret", psk)</code>, equivalent to
+<code>HKDF-Extract(salt = dhkem_shared_secret, IKM = ss_pq)</code> <span>[<a href="#RFC5869" class="cite xref">RFC5869</a>]</span>. In
+<code>CombineSecrets_OneStage()</code>, <code>dhkem_shared_secret</code> and <code>psk</code> are length-prefixed
+and concatenated before a single <code>LabeledDerive()</code> call. In both cases,
+<code>dhkem_shared_secret</code> and <code>ss_pq</code> enter the combination as independent inputs.
+The intended design property is that <code>secret</code> remains pseudorandom as long as at
+least one of the two inputs is---meaning an adversary would need to attack both
+the classical DH-based component and the PQ-KEM to recover <code>secret</code>.  Whether
+this property holds formally for a specific <code>CombineSecrets</code> variant depends on
+that variant's security analysis, which is outside the scope of this document.
+Authentication remains entirely classical; a quantum adversary that breaks the
+DH assumption can also forge sender authentication, so post-quantum sender
+authentication would require an additional PQ signature. Note that <span>[<a href="#Alwen2023" class="cite xref">Alwen2023</a>]</span>
+describes a related hybrid construction in which a PQ <em>AKEM</em> (rather than a
+plain KEM) is used to generate the PSK, which would additionally provide
+post-quantum sender authentication; that stronger construction is outside the
+scope of this document.<a href="#section-4.1-6" class="pilcrow">¶</a></p>
 <p id="section-4.1-7"><strong>PSK freshness.</strong> The ML-KEM shared secret <code>ss_pq</code> satisfies the
-entropy requirement in <span><a href="https://datatracker.ietf.org/doc/html/draft-ietf-hpke-hpke-03#section-9.5" class="relref">Section 9.5</a> of [<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span> (32 bytes
-of uniform randomness). The prohibition on <code>enc_pq</code> reuse above ensures
-a fresh PSK per session.<a href="#section-4.1-7" class="pilcrow">¶</a></p>
+entropy requirement in <span><a href="https://datatracker.ietf.org/doc/html/draft-ietf-hpke-hpke-03#section-9.5" class="relref">Section 9.5</a> of [<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span> (32 bytes of
+uniform randomness). The prohibition on <code>enc_pq</code> reuse above ensures a fresh PSK
+per session.<a href="#section-4.1-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -1515,12 +1515,11 @@ a fresh PSK per session.<a href="#section-4.1-7" class="pilcrow">¶</a></p>
       <h2 id="name-hpke-auth-profiles-informat">
 <a href="#section-5" class="section-number selfRef">5. </a><a href="#name-hpke-auth-profiles-informat" class="section-name selfRef">HPKE-Auth Profiles (Informative)</a>
       </h2>
-<p id="section-5-1">This section is informative. The profiles below are suggested KEM and
-KDF parameter sets for the example applications in <a href="#sec-dh-akem" class="auto internal xref">Section 4</a>; they
-are not registered by this document. Because <code>AEAD_ID</code> is selected by
-the application, these are parameter sets, not fully determined
-ciphersuites. <code>KEM_ID</code> and <code>KDF_ID</code> are drawn from the registries in
-<span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span>.<a href="#section-5-1" class="pilcrow">¶</a></p>
+<p id="section-5-1">This section is informative. The profiles below are suggested KEM and KDF
+parameter sets for the example applications in <a href="#sec-dh-akem" class="auto internal xref">Section 4</a>; they are not
+registered by this document. Because <code>AEAD_ID</code> is selected by the application,
+these are parameter sets, not fully determined ciphersuites. <code>KEM_ID</code> and
+<code>KDF_ID</code> are drawn from the registries in <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span>.<a href="#section-5-1" class="pilcrow">¶</a></p>
 <table class="center" id="table-1">
         <caption><a href="#table-1" class="selfRef">Table 1</a></caption>
 <thead>
@@ -1535,58 +1534,94 @@ ciphersuites. <code>KEM_ID</code> and <code>KDF_ID</code> are drawn from the reg
         </thead>
         <tbody>
           <tr>
-            <td class="text-left" rowspan="1" colspan="1">HPKE-Auth-X25519-SHA256</td>
-            <td class="text-left" rowspan="1" colspan="1">0x0020</td>
-            <td class="text-left" rowspan="1" colspan="1">0x0001</td>
-            <td class="text-left" rowspan="1" colspan="1">—</td>
+            <td class="text-left" rowspan="1" colspan="1">
+              <code>HPKE-Auth-X25519-SHA256</code>
+</td>
+            <td class="text-left" rowspan="1" colspan="1">
+              <code>0x0020</code>
+</td>
+            <td class="text-left" rowspan="1" colspan="1">
+              <code>0x0001</code>
+</td>
+            <td class="text-left" rowspan="1" colspan="1">---</td>
             <td class="text-left" rowspan="1" colspan="1">32</td>
-            <td class="text-left" rowspan="1" colspan="1">—</td>
+            <td class="text-left" rowspan="1" colspan="1">---</td>
           </tr>
           <tr>
-            <td class="text-left" rowspan="1" colspan="1">HPKE-Auth-P256-SHA256</td>
-            <td class="text-left" rowspan="1" colspan="1">0x0010</td>
-            <td class="text-left" rowspan="1" colspan="1">0x0001</td>
-            <td class="text-left" rowspan="1" colspan="1">—</td>
+            <td class="text-left" rowspan="1" colspan="1">
+              <code>HPKE-Auth-P256-SHA256</code>
+</td>
+            <td class="text-left" rowspan="1" colspan="1">
+              <code>0x0010</code>
+</td>
+            <td class="text-left" rowspan="1" colspan="1">
+              <code>0x0001</code>
+</td>
+            <td class="text-left" rowspan="1" colspan="1">---</td>
             <td class="text-left" rowspan="1" colspan="1">65</td>
-            <td class="text-left" rowspan="1" colspan="1">—</td>
+            <td class="text-left" rowspan="1" colspan="1">---</td>
           </tr>
           <tr>
-            <td class="text-left" rowspan="1" colspan="1">HPKE-Auth-X448-SHA512</td>
-            <td class="text-left" rowspan="1" colspan="1">0x0021</td>
-            <td class="text-left" rowspan="1" colspan="1">0x0003</td>
-            <td class="text-left" rowspan="1" colspan="1">—</td>
+            <td class="text-left" rowspan="1" colspan="1">
+              <code>HPKE-Auth-X448-SHA512</code>
+</td>
+            <td class="text-left" rowspan="1" colspan="1">
+              <code>0x0021</code>
+</td>
+            <td class="text-left" rowspan="1" colspan="1">
+              <code>0x0003</code>
+</td>
+            <td class="text-left" rowspan="1" colspan="1">---</td>
             <td class="text-left" rowspan="1" colspan="1">56</td>
-            <td class="text-left" rowspan="1" colspan="1">—</td>
+            <td class="text-left" rowspan="1" colspan="1">---</td>
           </tr>
           <tr>
-            <td class="text-left" rowspan="1" colspan="1">HPKE-Auth-Hybrid-X25519-SHA256-MLKEM768</td>
-            <td class="text-left" rowspan="1" colspan="1">0x0020</td>
-            <td class="text-left" rowspan="1" colspan="1">0x0001</td>
+            <td class="text-left" rowspan="1" colspan="1">
+              <code>HPKE-Auth-Hybrid-X25519-SHA256-MLKEM768</code>
+</td>
+            <td class="text-left" rowspan="1" colspan="1">
+              <code>0x0020</code>
+</td>
+            <td class="text-left" rowspan="1" colspan="1">
+              <code>0x0001</code>
+</td>
             <td class="text-left" rowspan="1" colspan="1">ML-KEM-768</td>
             <td class="text-left" rowspan="1" colspan="1">32</td>
             <td class="text-left" rowspan="1" colspan="1">1088</td>
           </tr>
           <tr>
-            <td class="text-left" rowspan="1" colspan="1">HPKE-Auth-Hybrid-X25519-SHA256-MLKEM1024</td>
-            <td class="text-left" rowspan="1" colspan="1">0x0020</td>
-            <td class="text-left" rowspan="1" colspan="1">0x0001</td>
+            <td class="text-left" rowspan="1" colspan="1">
+              <code>HPKE-Auth-Hybrid-X25519-SHA256-MLKEM1024</code>
+</td>
+            <td class="text-left" rowspan="1" colspan="1">
+              <code>0x0020</code>
+</td>
+            <td class="text-left" rowspan="1" colspan="1">
+              <code>0x0001</code>
+</td>
             <td class="text-left" rowspan="1" colspan="1">ML-KEM-1024</td>
             <td class="text-left" rowspan="1" colspan="1">32</td>
             <td class="text-left" rowspan="1" colspan="1">1568</td>
           </tr>
           <tr>
-            <td class="text-left" rowspan="1" colspan="1">HPKE-Auth-Hybrid-P256-SHA256-MLKEM768</td>
-            <td class="text-left" rowspan="1" colspan="1">0x0010</td>
-            <td class="text-left" rowspan="1" colspan="1">0x0001</td>
+            <td class="text-left" rowspan="1" colspan="1">
+              <code>HPKE-Auth-Hybrid-P256-SHA256-MLKEM768</code>
+</td>
+            <td class="text-left" rowspan="1" colspan="1">
+              <code>0x0010</code>
+</td>
+            <td class="text-left" rowspan="1" colspan="1">
+              <code>0x0001</code>
+</td>
             <td class="text-left" rowspan="1" colspan="1">ML-KEM-768</td>
             <td class="text-left" rowspan="1" colspan="1">65</td>
             <td class="text-left" rowspan="1" colspan="1">1088</td>
           </tr>
         </tbody>
       </table>
-<p id="section-5-3">ML-KEM parameters are from <span>[<a href="#FIPS203" class="cite xref">FIPS203</a>]</span>. HPKE-Auth-Hybrid-X25519-SHA256-MLKEM768
-is the suggested default hybrid profile, yielding a combined
-encapsulation of 1120 bytes.<a href="#section-5-3" class="pilcrow">¶</a></p>
+<p id="section-5-3">ML-KEM parameters are from <span>[<a href="#FIPS203" class="cite xref">FIPS203</a>]</span>.
+<code>HPKE-Auth-Hybrid-X25519-SHA256-MLKEM768</code> is the suggested default hybrid
+profile, yielding a combined encapsulation of 1120 bytes.<a href="#section-5-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="sec-security">
@@ -1594,35 +1629,13 @@ encapsulation of 1120 bytes.<a href="#section-5-3" class="pilcrow">¶</a></p>
       <h2 id="name-security-considerations">
 <a href="#section-6" class="section-number selfRef">6. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
       </h2>
-<p id="section-6-1">The following considerations apply to <code>mode_auth</code> and <code>mode_auth_psk</code>
-as defined in <a href="#sec-ext" class="auto internal xref">Section 3</a>. Security properties specific to the hybrid
-PQ/T construction are discussed informatively in <a href="#sec-hybrid" class="auto internal xref">Section 4.1</a>.<a href="#section-6-1" class="pilcrow">¶</a></p>
-<p id="section-6-2"><strong>Sender authentication.</strong> These modes provide implicit authentication
-of the sender's <em>public key</em> <code>pkS</code>: a receiver that successfully derives
-the shared secret has evidence that the encapsulation was produced by a
-party in possession of <code>skS</code>, the private key corresponding to <code>pkS</code>.
-This is authentication of a public key, not of an identity. Any binding
-between <code>pkS</code> and a named party, role, or credential is outside the
-scope of this document and must be established by the application.<a href="#section-6-2" class="pilcrow">¶</a></p>
-<p id="section-6-3">The authentication is implicit — no explicit proof such as a signature
-or MAC is conveyed — and therefore does not constitute non-repudiation.
-Furthermore, any party holding the receiver's private key <code>skR</code> can
-compute <code>DH(skR, pkS)</code> directly, reproducing the static DH contribution
-and thereby impersonating any sender to that receiver (Key Compromise
-Impersonation, or KCI). Applications that require non-repudiation, KCI
-resistance, or explicit identity binding <span class="bcp14">MUST</span> supplement these modes
-with an explicit signature or other authentication mechanism.<a href="#section-6-3" class="pilcrow">¶</a></p>
-<p id="section-6-4"><strong>Binding.</strong> The HPKE key schedule binds <code>(enc, pkR, pkS)</code> through
-<code>kem_context</code>, the <code>mode</code> field (preventing cross-mode confusion), <code>info</code>
-(application context), and <code>psk</code>/<code>psk_id</code> (in <code>mode_auth_psk</code>).
-Applications <span class="bcp14">SHOULD</span> populate <code>info</code> with session-specific context.<a href="#section-6-4" class="pilcrow">¶</a></p>
-<p id="section-6-5"><strong>Forward secrecy.</strong> Compromise of <code>skS</code> does not reveal past shared
-secrets because the ephemeral key <code>skE</code> is independently necessary.
-Compromise of <code>skR</code> enables decapsulation of all past sessions targeting
-<code>pkR</code>; applications requiring receiver-key forward secrecy <span class="bcp14">MUST</span> use a
-higher-level ratchet or key-update mechanism.<a href="#section-6-5" class="pilcrow">¶</a></p>
-<p id="section-6-6">The formal security of the DHKEM authenticated modes under the Gap-DH
-assumption is established in <span>[<a href="#Alwen2021" class="cite xref">Alwen2021</a>]</span>.<a href="#section-6-6" class="pilcrow">¶</a></p>
+<p id="section-6-1">The sender-authentication and key-compromise impersonation (KCI) properties of
+<code>mode_auth</code> and <code>mode_auth_psk</code> are as described in Sections <a href="https://rfc-editor.org/rfc/rfc9180#section-9.1" class="relref">9.1</a> and <a href="https://rfc-editor.org/rfc/rfc9180#section-9.1.1" class="relref">9.1.1</a> of <span>[<a href="#RFC9180" class="cite xref">RFC9180</a>]</span>, which apply without change to the functions defined in <a href="#sec-ext" class="auto internal xref">Section 3</a>.
+Security properties specific to the hybrid PQ/T construction are discussed
+informatively in <a href="#sec-hybrid" class="auto internal xref">Section 4.1</a>.<a href="#section-6-1" class="pilcrow">¶</a></p>
+<p id="section-6-2">The formal security of the DHKEM authenticated modes under the Gap-DH assumption
+is established in <span>[<a href="#Alwen2021" class="cite xref">Alwen2021</a>]</span>. The security of <code>mode_auth_psk</code>---termed
+<code>AuthPSK</code> in <span>[<a href="#Alwen2023" class="cite xref">Alwen2023</a>]</span>---is analyzed there as the <code>pskAPKE</code> scheme.<a href="#section-6-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="sec-iana">
@@ -1670,6 +1683,10 @@ registries defined in <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D
         <dd>
 <span class="refAuthor">Alwen, J.</span>, <span class="refAuthor">Blanchet, B.</span>, <span class="refAuthor">Hauck, E.</span>, <span class="refAuthor">Kiltz, E.</span>, <span class="refAuthor">Lipp, B.</span>, and <span class="refAuthor">D. Riepel</span>, <span class="refTitle">"HPKE: Hybrid Public Key Encryption"</span>, <span class="refContent">Advances in Cryptology -- EUROCRYPT 2021, LNCS 12696, pp. 396-427</span>, <span class="seriesInfo">DOI 10.1007/978-3-030-77886-6_14</span>, <time datetime="2021" class="refDate">2021</time>, <span>&lt;<a href="https://doi.org/10.1007/978-3-030-77886-6_14">https://doi.org/10.1007/978-3-030-77886-6_14</a>&gt;</span>. </dd>
 <dd class="break"></dd>
+<dt id="Alwen2023">[Alwen2023]</dt>
+        <dd>
+<span class="refAuthor">Alwen, J.</span>, <span class="refAuthor">Janneck, J.</span>, <span class="refAuthor">Kiltz, E.</span>, and <span class="refAuthor">B. Lipp</span>, <span class="refTitle">"The Pre-Shared Key Modes of HPKE"</span>, <span class="refContent">Advances in Cryptology -- ASIACRYPT 2023</span>, <time datetime="2023" class="refDate">2023</time>, <span>&lt;<a href="https://eprint.iacr.org/2023/1480">https://eprint.iacr.org/2023/1480</a>&gt;</span>. </dd>
+<dd class="break"></dd>
 <dt id="FIPS203">[FIPS203]</dt>
         <dd>
 <span class="refAuthor">National Institute of Standards and Technology</span>, <span class="refTitle">"Module-Lattice-Based Key-Encapsulation Mechanism Standard"</span>, <span class="seriesInfo">FIPS 203</span>, <time datetime="2024-08" class="refDate">August 2024</time>, <span>&lt;<a href="https://doi.org/10.6028/NIST.FIPS.203">https://doi.org/10.6028/NIST.FIPS.203</a>&gt;</span>. </dd>
@@ -1683,8 +1700,12 @@ registries defined in <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D
 <span class="refAuthor">Krawczyk, H.</span> and <span class="refAuthor">P. Eronen</span>, <span class="refTitle">"HMAC-based Extract-and-Expand Key Derivation Function (HKDF)"</span>, <span class="seriesInfo">RFC 5869</span>, <span class="seriesInfo">DOI 10.17487/RFC5869</span>, <time datetime="2010-05" class="refDate">May 2010</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc5869">https://www.rfc-editor.org/rfc/rfc5869</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC9180">[RFC9180]</dt>
-      <dd>
+        <dd>
 <span class="refAuthor">Barnes, R.</span>, <span class="refAuthor">Bhargavan, K.</span>, <span class="refAuthor">Lipp, B.</span>, and <span class="refAuthor">C. Wood</span>, <span class="refTitle">"Hybrid Public Key Encryption"</span>, <span class="seriesInfo">RFC 9180</span>, <span class="seriesInfo">DOI 10.17487/RFC9180</span>, <time datetime="2022-02" class="refDate">February 2022</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9180">https://www.rfc-editor.org/rfc/rfc9180</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9794">[RFC9794]</dt>
+      <dd>
+<span class="refAuthor">Driscoll, F.</span>, <span class="refAuthor">Parsons, M.</span>, and <span class="refAuthor">B. Hale</span>, <span class="refTitle">"Terminology for Post-Quantum Traditional Hybrid Schemes"</span>, <span class="seriesInfo">RFC 9794</span>, <span class="seriesInfo">DOI 10.17487/RFC9794</span>, <time datetime="2025-06" class="refDate">June 2025</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9794">https://www.rfc-editor.org/rfc/rfc9794</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 </dl>
 </section>
@@ -1705,7 +1726,7 @@ registries defined in <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D
 <a href="#name-authors-addresses" class="section-name selfRef">Authors' Addresses</a>
       </h2>
 <address class="vcard">
-        <div dir="auto" class="left"><span class="fn nameRole">Cory Myers (<span class="role">editor</span>)</span></div>
+        <div dir="auto" class="left"><span class="fn nameRole">Cory Francis Myers (<span class="role">editor</span>)</span></div>
 <div dir="auto" class="left"><span class="org">Freedom of the Press Foundation</span></div>
 <div class="email">
 <span>Email:</span>
