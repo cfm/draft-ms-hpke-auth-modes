@@ -1,0 +1,535 @@
+{
+  "magic": "E!vIA5L86J2I",
+  "timestamp": "2026-03-19T00:35:24.371043+00:00",
+  "repo": "cfm/draft-ms-hpke-auth-modes",
+  "labels": [
+    {
+      "name": "bug",
+      "description": "Something isn't working",
+      "color": "d73a4a"
+    },
+    {
+      "name": "documentation",
+      "description": "Improvements or additions to documentation",
+      "color": "0075ca"
+    },
+    {
+      "name": "duplicate",
+      "description": "This issue or pull request already exists",
+      "color": "cfd3d7"
+    },
+    {
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    },
+    {
+      "name": "good first issue",
+      "description": "Good for newcomers",
+      "color": "7057ff"
+    },
+    {
+      "name": "help wanted",
+      "description": "Extra attention is needed",
+      "color": "008672"
+    },
+    {
+      "name": "invalid",
+      "description": "This doesn't seem right",
+      "color": "e4e669"
+    },
+    {
+      "name": "question",
+      "description": "Further information is requested",
+      "color": "d876e3"
+    },
+    {
+      "name": "wontfix",
+      "description": "This will not be worked on",
+      "color": "ffffff"
+    }
+  ],
+  "issues": [
+    {
+      "number": 2,
+      "id": "I_kwDORjRsxc7xiPx6",
+      "title": "revise abstract and introduction",
+      "url": "https://github.com/cfm/draft-ms-hpke-auth-modes/issues/2",
+      "state": "CLOSED",
+      "author": "cfm",
+      "authorAssociation": "OWNER",
+      "assignees": [
+        "cfm"
+      ],
+      "labels": [],
+      "body": "",
+      "createdAt": "2026-03-10T14:43:17Z",
+      "updatedAt": "2026-03-17T22:44:31Z",
+      "closedAt": "2026-03-17T22:44:31Z",
+      "comments": []
+    },
+    {
+      "number": 3,
+      "id": "I_kwDORjRsxc7xiP9D",
+      "title": "revise security considerations",
+      "url": "https://github.com/cfm/draft-ms-hpke-auth-modes/issues/3",
+      "state": "CLOSED",
+      "author": "cfm",
+      "authorAssociation": "OWNER",
+      "assignees": [
+        "cfm"
+      ],
+      "labels": [],
+      "body": "",
+      "createdAt": "2026-03-10T14:43:25Z",
+      "updatedAt": "2026-03-17T22:44:30Z",
+      "closedAt": "2026-03-17T22:44:30Z",
+      "comments": []
+    },
+    {
+      "number": 4,
+      "id": "I_kwDORjRsxc7xiQFb",
+      "title": "revise acknowledgments",
+      "url": "https://github.com/cfm/draft-ms-hpke-auth-modes/issues/4",
+      "state": "OPEN",
+      "author": "cfm",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2026-03-10T14:43:31Z",
+      "updatedAt": "2026-03-10T14:43:31Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 5,
+      "id": "I_kwDORjRsxc7xiWX4",
+      "title": "finalize references to `draft-ietf-hpke-hpke` once `-03` is published as an RFC",
+      "url": "https://github.com/cfm/draft-ms-hpke-auth-modes/issues/5",
+      "state": "OPEN",
+      "author": "cfm",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2026-03-10T14:47:51Z",
+      "updatedAt": "2026-03-10T14:47:51Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 6,
+      "id": "I_kwDORjRsxc7yUJ6Z",
+      "title": "citations in support of the PQ/T hybrid usage of `mode_auth_psk`",
+      "url": "https://github.com/cfm/draft-ms-hpke-auth-modes/issues/6",
+      "state": "CLOSED",
+      "author": "cfm",
+      "authorAssociation": "OWNER",
+      "assignees": [
+        "cfm"
+      ],
+      "labels": [],
+      "body": "- Alwen et al. (2023), [\"The Pre-Shared Key Modes of HPKE\"](https://eprint.iacr.org/2023/1480)\n- Our manuscript",
+      "createdAt": "2026-03-12T15:13:10Z",
+      "updatedAt": "2026-03-17T22:44:30Z",
+      "closedAt": "2026-03-17T22:44:29Z",
+      "comments": []
+    },
+    {
+      "number": 7,
+      "id": "I_kwDORjRsxc7yUV7B",
+      "title": "fix metadata",
+      "url": "https://github.com/cfm/draft-ms-hpke-auth-modes/issues/7",
+      "state": "CLOSED",
+      "author": "cfm",
+      "authorAssociation": "OWNER",
+      "assignees": [
+        "cfm"
+      ],
+      "labels": [],
+      "body": "Should probably be:\n\n```yaml\ntitle: \"DH-AKEM: Authenticated Modes for HPKE\"\nabbrev: \"DH-AKEM\"\ncategory: std\n\ndocname: draft-ms-hpke-auth-modes-latest\n```\n\n\u2014and renamed according to `docname`.",
+      "createdAt": "2026-03-12T15:20:33Z",
+      "updatedAt": "2026-03-17T19:23:36Z",
+      "closedAt": "2026-03-17T19:23:36Z",
+      "comments": []
+    },
+    {
+      "number": 9,
+      "id": "I_kwDORjRsxc7zc1cS",
+      "title": "cite RFC 9794 to define PQ/T hybrid",
+      "url": "https://github.com/cfm/draft-ms-hpke-auth-modes/issues/9",
+      "state": "CLOSED",
+      "author": "cfm",
+      "authorAssociation": "OWNER",
+      "assignees": [
+        "cfm"
+      ],
+      "labels": [],
+      "body": "",
+      "createdAt": "2026-03-16T19:40:14Z",
+      "updatedAt": "2026-03-17T22:44:30Z",
+      "closedAt": "2026-03-17T22:44:30Z",
+      "comments": []
+    },
+    {
+      "number": 10,
+      "id": "I_kwDORjRsxc7zc6fB",
+      "title": "cite RFC 9180 when pseudocode is identical or derived",
+      "url": "https://github.com/cfm/draft-ms-hpke-auth-modes/issues/10",
+      "state": "CLOSED",
+      "author": "cfm",
+      "authorAssociation": "OWNER",
+      "assignees": [
+        "cfm"
+      ],
+      "labels": [],
+      "body": "",
+      "createdAt": "2026-03-16T19:44:27Z",
+      "updatedAt": "2026-03-17T22:44:30Z",
+      "closedAt": "2026-03-17T22:44:30Z",
+      "comments": []
+    },
+    {
+      "number": 11,
+      "id": "I_kwDORjRsxc7zx1zT",
+      "title": "test vectors",
+      "url": "https://github.com/cfm/draft-ms-hpke-auth-modes/issues/11",
+      "state": "OPEN",
+      "author": "redshiftzero",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "RFC 9180 in Appendix A has test vectors for the auth modes, as does https://datatracker.ietf.org/doc/html/draft-ietf-hpke-hpke-03 for the supported ciphersuites\n\nTest vectors should be included, I think the test vectors from RFC 9180 should be bit identical to what we want since the same KEMs/KDFs/AEADs are used (from looking at Tables 2, 3, 5 in the two specs)",
+      "createdAt": "2026-03-17T17:09:06Z",
+      "updatedAt": "2026-03-17T22:51:43Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "cfm",
+          "authorAssociation": "OWNER",
+          "body": "For inspiration: hpkewg/hpke#55...",
+          "createdAt": "2026-03-17T22:51:43Z",
+          "updatedAt": "2026-03-17T22:51:43Z"
+        }
+      ]
+    },
+    {
+      "number": 13,
+      "id": "I_kwDORjRsxc70CV2r",
+      "title": "Consider documenting a generic construction",
+      "url": "https://github.com/cfm/draft-ms-hpke-auth-modes/issues/13",
+      "state": "OPEN",
+      "author": "bellebaum",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "I am relatively certain that such a thing would never be specified (because more-efficient-yet-less-generic alternatives will certainly arise before the need), but it is possible to generically construct an AuthKEM from an IND-CCA2 KEM and an EUF-CMA signature scheme.\n\nIn short: Public/Private keys are concatenated.\n\nEncaps from sender S to the recipient R works as follows:\n\n(c,k') <- KEM.Encaps(kemPkR)\ns <- Signature.Sign(sigSkS, (c, idR))\nk <- KDF(k', (c,s,idS))\noutput ciphertext (c,s) and shared key k\n\nDecaps:\n\nk' <- KEM.Decaps(kemSkR, c)\nif k' is failure: output failure\nv <- Signature.Verify(sigPkS, (c, idR), s)\nif not v: output failure\nk <- KDF(k', (c,s,idS))\noutput shared key k\n\n\nSome notes:\n\n- This scheme is sometimes explicitly rejecting and sometimes quiet, depending on the KEM, signature scheme and messages, but see below for modifications.\n  - In the quiet case, HPKE will reject messages at the AEAD layer.\n- idX is the \"identity\" of X, which can be the concatenated public keys in case those are unique. They ensure that the ciphertext is bound to a recipient (for integrity) and that the session key is bound to a sender (for confidentiality).\n- The transcript hashing (inclusion of (c,s) in KDF) is partially optional (except for some modifications below), but I highly recommend it. It provides a certain safeguard against weak forgeries of c and s. If convenient, (c,s) may be pre-hashed using any collision resistant hash function. c and s never have to be stored in memory at the same time: c can be hashed and then sent/discarded before s is created/read.\n- Hybrid KEMs and signatures can be freely used.\n\nSpecial modifications:\n\n- To get an explicitly rejecting AuthKEM:\n  - The signature scheme has to be SUF-CMA.\n  - The KEM has to be explicitly rejecting.\n    - Alternative: Include KDF(k', \"\") in the input to the signature for key confirmation, which makes any quiet KEM explicitly rejecting.\n\n- To get a guaranteed quiet AuthKEM:\n  - The KEM has to be quiet.\n    - Alternative: Use a secret fallback key k' as part of kemSk, although beware possible timing side channels!\n  - The signature verification and KEM decapsulation SHOULD run in constant time irrespective of failure.\n  - Remove all lines outputting failure and make v part of the KDF input. For Encaps, define v <- true",
+      "createdAt": "2026-03-18T10:41:36Z",
+      "updatedAt": "2026-03-18T10:41:36Z",
+      "closedAt": null,
+      "comments": []
+    }
+  ],
+  "pulls": [
+    {
+      "number": 1,
+      "id": "PR_kwDORjRsxc7JYsu7",
+      "title": "docs: initial copy-paste reframing of RFC 9180's `mode_auth` and `mode_auth_psk` via `draft-ietf-hpke-hpke-03`",
+      "url": "https://github.com/cfm/draft-ms-hpke-auth-modes/pull/1",
+      "state": "MERGED",
+      "author": "cfm",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "Facilitated by Claude.  This will need some further reframing (and copyediting), but it should achieve the `draft-dh-akem-extension = RFC 9180 - draft-ietf-hpke-hpke` substance we're looking for.",
+      "createdAt": "2026-03-10T13:27:16Z",
+      "updatedAt": "2026-03-12T15:24:40Z",
+      "baseRepository": "cfm/draft-ms-hpke-auth-modes",
+      "baseRefName": "main",
+      "baseRefOid": "1de3e24d54fbe912a450ddc6a9efb6cfbd8ae3db",
+      "headRepository": "cfm/draft-ms-hpke-auth-modes",
+      "headRefName": "cfm",
+      "headRefOid": "09c230c9e1b891de7aca57d5ee2b7002af19fbe9",
+      "closedAt": "2026-03-12T15:24:40Z",
+      "mergedAt": "2026-03-12T15:24:40Z",
+      "mergedBy": "cfm",
+      "mergeCommit": {
+        "oid": "df339e64e1f60405ee285e5cb3db68d032be65c5"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDORjRsxc7p0ofR",
+          "commit": {
+            "abbreviatedOid": "753cd07"
+          },
+          "author": "copilot-pull-request-reviewer",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "## Pull request overview\n\nThis PR turns `draft-dh-akem-extension.md` from a template stub into an initial Internet-Draft that specifies a DH-AKEM construction by restoring HPKE authenticated modes (`mode_auth`, `mode_auth_psk`) and defining named usage profiles, including a hybrid PQ/classical variant.\n\n**Changes:**\n- Replaces placeholder front-matter and adds normative/informative references.\n- Adds an abstract/introduction plus a full technical specification (mode identifiers, `AuthEncap`/`AuthDecap`, setup functions, hybrid construction, and ciphersuite table).\n- Adds Security Considerations, IANA Considerations, and Acknowledgments content.\n\n\n\n\n\n---\n\n\ud83d\udca1 <a href=\"/cfm/draft-dh-akem-extension/new/main?filename=.github/instructions/*.instructions.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add Copilot custom instructions</a> for smarter, more guided reviews. <a href=\"https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn how to get started</a>.<br><br>You can also share your feedback on Copilot code review. [Take the survey](https://www.surveymonkey.com/r/XP6L3XJ).",
+          "createdAt": "2026-03-10T14:30:55Z",
+          "updatedAt": "2026-03-10T14:30:56Z",
+          "comments": [
+            {
+              "originalPosition": 69,
+              "body": "The abstract (and later sections) refer to \u201crevision -03 of {{I-D.ietf-hpke-hpke}}\u201d, but the `I-D.ietf-hpke-hpke` citation isn\u2019t version-pinned and HPKE is published as RFC 9180. Consider updating references/text so readers can unambiguously locate the exact spec being discussed (e.g., cite RFC 9180 for the base spec and, if needed, add an explicit reference to draft-ietf-hpke-hpke-03 when discussing what changed in -03).",
+              "createdAt": "2026-03-10T14:30:55Z",
+              "updatedAt": "2026-03-10T14:30:56Z"
+            },
+            {
+              "originalPosition": 127,
+              "body": "This section says \u201cNo existing algorithm in {{I-D.ietf-hpke-hpke}} is modified\u201d, but the document later replaces the `VerifyPSKInputs` algorithm with an updated version. If the intent is \u201cno behavior change for existing modes\u201d, consider rephrasing to avoid contradicting the subsequent `VerifyPSKInputs` update.\n```suggestion\n-03 required to restore `mode_auth` and `mode_auth_psk`. These extensions\nare defined so that the externally observable behavior of existing HPKE\nmodes is unchanged, although this document updates the `VerifyPSKInputs`\nprocedure in {{I-D.ietf-hpke-hpke}}.\n```",
+              "createdAt": "2026-03-10T14:30:56Z",
+              "updatedAt": "2026-03-10T14:30:56Z"
+            },
+            {
+              "originalPosition": 192,
+              "body": "The cross-reference sentence appears reversed: `KeySchedule` is defined in {{!I-D.ietf-hpke-hpke}}, while `AuthEncap`/`AuthDecap` are defined in {{sec-authencap}}. Swapping these references would make the provenance of each function unambiguous.\n```suggestion\nas defined in {{!I-D.ietf-hpke-hpke}} and {{sec-authencap}} respectively.\n```",
+              "createdAt": "2026-03-10T14:30:56Z",
+              "updatedAt": "2026-03-10T14:30:56Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDORjRsxc7p1Xbo",
+          "commit": {
+            "abbreviatedOid": "753cd07"
+          },
+          "author": "cfm",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-03-10T14:52:52Z",
+          "updatedAt": "2026-03-10T14:52:52Z",
+          "comments": [
+            {
+              "originalPosition": 69,
+              "body": "Done for now in eebaeabb749d117e790b79668b604b70d6a9a34e, pending #5.",
+              "createdAt": "2026-03-10T14:52:52Z",
+              "updatedAt": "2026-03-10T14:52:53Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDORjRsxc7p1oJ-",
+          "commit": {
+            "abbreviatedOid": "eebaeab"
+          },
+          "author": "copilot-pull-request-reviewer",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "## Pull request overview\n\nCopilot reviewed 1 out of 1 changed files in this pull request and generated 4 comments.\n\n\n\n\n\n---\n\n\ud83d\udca1 <a href=\"/cfm/draft-dh-akem-extension/new/main?filename=.github/instructions/*.instructions.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add Copilot custom instructions</a> for smarter, more guided reviews. <a href=\"https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn how to get started</a>.<br><br>You can also share your feedback on Copilot code review. [Take the survey](https://www.surveymonkey.com/r/XP6L3XJ).",
+          "createdAt": "2026-03-10T15:01:51Z",
+          "updatedAt": "2026-03-10T15:01:52Z",
+          "comments": [
+            {
+              "originalPosition": 64,
+              "body": "RFC 9180 is not an \"informational\" RFC (it\u2019s Standards Track). Also, an Internet-Draft does not itself \"supersede\" an RFC until published; consider rephrasing to \"successor to\" / \"intended to obsolete/update\" RFC 9180 to avoid an inaccurate status statement.\n```suggestion\n{{I-D.ietf-hpke-hpke}} is a standards-track Internet-Draft that is\nintended as the standards-track successor to {{?RFC9180}} and omits\n`mode_auth` (0x02) and `mode_auth_psk` (0x03). This document restores\nthose two modes as a strict extension, requiring only the addition of\n`AuthEncap`/`AuthDecap` to the DHKEM, four Setup functions, and an update to `VerifyPSKInputs`.\n```",
+              "createdAt": "2026-03-10T15:01:51Z",
+              "updatedAt": "2026-03-10T15:01:52Z"
+            },
+            {
+              "originalPosition": 83,
+              "body": "Same issue as the abstract: RFC 9180 is Standards Track (not informational), and describing the Internet-Draft as having already superseded RFC 9180 is misleading. Rephrase to reflect the current publication status (e.g., successor / intended to obsolete).",
+              "createdAt": "2026-03-10T15:01:51Z",
+              "updatedAt": "2026-03-10T15:01:53Z"
+            },
+            {
+              "originalPosition": 243,
+              "body": "The pseudocode function name `DH-AKEM-Hybrid.SetupS` includes hyphens, which can be read as subtraction and is inconsistent with the identifier style used elsewhere in the algorithms (e.g., `SetupAuthS`). Consider renaming to an unambiguous identifier (no `-`) and keep naming consistent across the document.\n```suggestion\ndef DH_AKEM_Hybrid.SetupS(pkR, pkR_pq, skS, info):\n  pq_ss, enc_pq = PQKEM.Encap(pkR_pq)\n  enc_dh, ctx = SetupAuthPSKS(pkR, info, pq_ss, enc_pq, skS)\n  return concat(enc_dh, enc_pq), ctx\n\ndef DH_AKEM_Hybrid.SetupR(enc, skR, skR_pq, pkS, info):\n```",
+              "createdAt": "2026-03-10T15:01:52Z",
+              "updatedAt": "2026-03-10T15:01:53Z"
+            },
+            {
+              "originalPosition": 243,
+              "body": "`DH-AKEM-Hybrid.SetupR` has the same hyphenated identifier issue as `SetupS`, and it also places `info` last whereas the other Setup functions in this document consistently take `info` immediately after the receiver/sender key inputs. Align the parameter ordering with the other Setup APIs to make misuse less likely.\n```suggestion\ndef DH_AKEM_Hybrid_SetupS(pkR, info, pkR_pq, skS):\n  pq_ss, enc_pq = PQKEM.Encap(pkR_pq)\n  enc_dh, ctx = SetupAuthPSKS(pkR, info, pq_ss, enc_pq, skS)\n  return concat(enc_dh, enc_pq), ctx\n\ndef DH_AKEM_Hybrid_SetupR(enc, skR, pkS, info, skR_pq):\n```",
+              "createdAt": "2026-03-10T15:01:52Z",
+              "updatedAt": "2026-03-10T15:01:53Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 8,
+      "id": "PR_kwDORjRsxc7LBK-m",
+      "title": "docs: revise per feedback from @blipp and @grittygrease",
+      "url": "https://github.com/cfm/draft-ms-hpke-auth-modes/pull/8",
+      "state": "MERGED",
+      "author": "cfm",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "b6ea0ea814945430553f46c0f4f7dcd36b770a55 renames the Markdown file per #7, so the diff will be easiest to step through commit by commit (or starting after b6ea0ea814945430553f46c0f4f7dcd36b770a55).",
+      "createdAt": "2026-03-16T19:30:05Z",
+      "updatedAt": "2026-03-17T19:23:33Z",
+      "baseRepository": "cfm/draft-ms-hpke-auth-modes",
+      "baseRefName": "main",
+      "baseRefOid": "df339e64e1f60405ee285e5cb3db68d032be65c5",
+      "headRepository": "cfm/draft-ms-hpke-auth-modes",
+      "headRefName": "cfm",
+      "headRefOid": "26f0fa9e7568c944436338dc8c2dd94aa4ec7e58",
+      "closedAt": "2026-03-17T19:23:33Z",
+      "mergedAt": "2026-03-17T19:23:33Z",
+      "mergedBy": "cfm",
+      "mergeCommit": {
+        "oid": "7541759e5210df287a619fcb64e4cdd3fb624873"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDORjRsxc7rz0ga",
+          "commit": {
+            "abbreviatedOid": "5eaab85"
+          },
+          "author": "copilot-pull-request-reviewer",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "## Pull request overview\n\nThis PR renames/replaces the existing Internet-Draft with a new draft focused on restoring HPKE authenticated modes (`mode_auth` and `mode_auth_psk`) as a strict extension to `draft-ietf-hpke-hpke`, and re-frames the prior DH-AKEM material as informative examples/profiles.\n\n**Changes:**\n- Adds `draft-ms-hpke-auth-modes.md`, specifying `AuthEncap`/`AuthDecap`, updated `VerifyPSKInputs`, and four authenticated Setup functions.\n- Adds informative guidance for a hybrid PQ/T construction using `mode_auth_psk` with a PQ-KEM shared secret as the PSK, plus suggested parameter profiles.\n- Removes the prior `draft-dh-akem-extension.md` document.\n\n### Reviewed changes\n\nCopilot reviewed 2 out of 2 changed files in this pull request and generated 3 comments.\n\n| File | Description |\n| ---- | ----------- |\n| draft-ms-hpke-auth-modes.md | New primary draft defining authenticated HPKE mode extensions and informative example applications/profiles. |\n| draft-dh-akem-extension.md | Deleted prior draft document that this PR replaces/supersedes. |\n\n\n\n\n\n---\n\n\ud83d\udca1 <a href=\"/cfm/draft-ms-hpke-auth-modes/new/main?filename=.github/instructions/*.instructions.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add Copilot custom instructions</a> for smarter, more guided reviews. <a href=\"https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn how to get started</a>.<br><br>You can also share your feedback on Copilot code review. [Take the survey](https://www.surveymonkey.com/r/XP6L3XJ).",
+          "createdAt": "2026-03-16T19:44:40Z",
+          "updatedAt": "2026-03-16T19:44:40Z",
+          "comments": [
+            {
+              "originalPosition": 23,
+              "body": "The `venue.github` value still points at `cfm/draft-dh-akem-extension`, which no longer matches this document\u2019s `docname`/filename (`draft-ms-hpke-auth-modes`). This will produce incorrect Editor\u2019s Copy/GitHub Pages links in rendered output; update it to the correct repository/path for this draft.\n",
+              "createdAt": "2026-03-16T19:44:40Z",
+              "updatedAt": "2026-03-16T19:44:40Z"
+            },
+            {
+              "originalPosition": 270,
+              "body": "In the hybrid profile, the text says to include `pkR_pq` in `info`, but it doesn\u2019t specify a deterministic byte encoding for `pkR_pq`. Since `info` is a byte string, please state how `pkR_pq` is serialized (and ideally length-delimited) to avoid ambiguity and interoperability issues.\n",
+              "createdAt": "2026-03-16T19:44:40Z",
+              "updatedAt": "2026-03-16T19:44:40Z"
+            },
+            {
+              "originalPosition": 270,
+              "body": "`concat(info, pkR_pq)` in the HybridSetup pseudocode concatenates a public-key object into a byte string without defining its encoding. Align the pseudocode with the spec text by explicitly serializing `pkR_pq` (and consider length-prefixing) so both sides compute identical `info` bytes.\n",
+              "createdAt": "2026-03-16T19:44:40Z",
+              "updatedAt": "2026-03-16T19:44:41Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDORjRsxc7sKsTO",
+          "commit": {
+            "abbreviatedOid": "5eaab85"
+          },
+          "author": "redshiftzero",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "looks good! few info level comments, feel free to disregard or punt until later",
+          "createdAt": "2026-03-17T16:41:16Z",
+          "updatedAt": "2026-03-17T17:38:03Z",
+          "comments": [
+            {
+              "originalPosition": 305,
+              "body": "should be section 9.5? section 9.5 contains the entropy requirements:\n\n> In the PSK modes, the PSK MUST have at least 32 bytes of entropy and SHOULD be of length Nh bytes or longer.\n\n(though 9.7.5 discusses the impact of bad ephemeral randomness)\n```suggestion\nentropy requirement in {{Section 9.5 of !I-D.ietf-hpke-hpke}} (32 bytes\n```",
+              "createdAt": "2026-03-17T16:41:16Z",
+              "updatedAt": "2026-03-17T17:38:03Z"
+            },
+            {
+              "originalPosition": 228,
+              "body": "so in RFC 9180, they have this section on validation of inputs and outputs: https://www.rfc-editor.org/rfc/rfc9180#name-validation-of-inputs-and-ou\r\n\r\nas does the new HPKE draft: https://datatracker.ietf.org/doc/html/draft-ietf-hpke-hpke-03#name-validation-of-inputs-and-ou\r\n\r\ncomparing those, the authenticated modes have an additional requirement: \r\n> in authenticated modes, the recipient MUST validate the sender's static public key `pkS`. Validation failure yields a `ValidationError`\r\n\r\n```suggestion\r\n## Input Validation and Error Handling\r\n\r\nIn addition to the validation requirements in {{Section 7.1.4 of\r\n!I-D.ietf-hpke-hpke}}, the recipient MUST validate the sender's\r\nstatic public key `pkS` before use in `AuthDecap()`, applying the\r\nsame validation rules as for other public key inputs. Validation failure\r\nMUST yield a `ValidationError`.\r\n```",
+              "createdAt": "2026-03-17T16:54:09Z",
+              "updatedAt": "2026-03-17T17:38:03Z"
+            },
+            {
+              "originalPosition": 177,
+              "body": "perhaps worth adding a note about KCI here too (as RFC 9180 does):\n\n\n```suggestion\nNote that the AuthEncap() and AuthDecap() functions are vulnerable to key-compromise impersonation (KCI): the assurance that the shared secret was generated by the holder of the private key `skS` does not hold if the recipient private key `skR` is compromised. See {{sec-security}} for further discussion.\n```",
+              "createdAt": "2026-03-17T17:25:04Z",
+              "updatedAt": "2026-03-17T17:38:03Z"
+            },
+            {
+              "originalPosition": 143,
+              "body": "technically it's un-reserving those values, so maybe: \n\n```suggestion\nThe reserved entries for values 0x02 and 0x03 in Table 1 of {{!I-D.ietf-hpke-hpke}} are replaced with the following mode identifiers: \n```",
+              "createdAt": "2026-03-17T17:31:37Z",
+              "updatedAt": "2026-03-17T17:38:03Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDORjRsxc7sNuAN",
+          "commit": {
+            "abbreviatedOid": "cb46023"
+          },
+          "author": "github-actions",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-03-17T18:50:43Z",
+          "updatedAt": "2026-03-17T18:50:43Z",
+          "comments": [
+            {
+              "originalPosition": 143,
+              "body": "````suggestion\nThe reserved entries for values 0x02 and 0x03 in Table 1 of {{!I-D.ietf-hpke-hpke}} are replaced with the following mode identifiers:\n````",
+              "createdAt": "2026-03-17T18:50:43Z",
+              "updatedAt": "2026-03-17T18:50:43Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 12,
+      "id": "PR_kwDORjRsxc7LXhoL",
+      "title": "docs: proofread",
+      "url": "https://github.com/cfm/draft-ms-hpke-auth-modes/pull/12",
+      "state": "MERGED",
+      "author": "cfm",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2026-03-17T22:26:14Z",
+      "updatedAt": "2026-03-17T22:47:01Z",
+      "baseRepository": "cfm/draft-ms-hpke-auth-modes",
+      "baseRefName": "main",
+      "baseRefOid": "7541759e5210df287a619fcb64e4cdd3fb624873",
+      "headRepository": "cfm/draft-ms-hpke-auth-modes",
+      "headRefName": "cfm",
+      "headRefOid": "740716682da113956a6b6ac839e44f67fe1df6b8",
+      "closedAt": "2026-03-17T22:44:28Z",
+      "mergedAt": "2026-03-17T22:44:28Z",
+      "mergedBy": "cfm",
+      "mergeCommit": {
+        "oid": "39b750715f9b734e4d6ed8fe0ec53e796a605c46"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDORjRsxc7sR0L3",
+          "commit": {
+            "abbreviatedOid": "0987c4f"
+          },
+          "author": "copilot-pull-request-reviewer",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "## Pull request overview\n\nThis PR updates the Internet-Draft text for \u201cAuthenticated Modes for HPKE\u201d, primarily improving editorial clarity and updating references around restoring `mode_auth` and `mode_auth_psk` as an extension to the HPKE specification.\n\n**Changes:**\n- Refines the abstract and introduction text for clarity and updated framing (including hybrid PQ/T motivation).\n- Adds an informative reference for Alwen et al. (ASIACRYPT 2023) and updates Security Considerations language to reference RFC9180 sections.\n- Adjusts document metadata (keywords, author full name) and applies various formatting/consistency edits across pseudocode and prose.\n\n\n\n\n\n---\n\n\ud83d\udca1 <a href=\"/cfm/draft-ms-hpke-auth-modes/new/main?filename=.github/instructions/*.instructions.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add Copilot custom instructions</a> for smarter, more guided reviews. <a href=\"https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn how to get started</a>.<br><br>You can also share your feedback on Copilot code review. [Take the survey](https://www.surveymonkey.com/r/XP6L3XJ).",
+          "createdAt": "2026-03-17T22:36:57Z",
+          "updatedAt": "2026-03-17T22:36:58Z",
+          "comments": [
+            {
+              "originalPosition": 66,
+              "body": "Citations to the base HPKE spec use `{{I-D.ietf-hpke-hpke}}` here (no `!`/`?` marker), but elsewhere the document uses `{{!I-D.ietf-hpke-hpke}}`. Please make the citation marker consistent throughout (and ensure the reference is correctly classified as normative vs. informative).",
+              "createdAt": "2026-03-17T22:36:57Z",
+              "updatedAt": "2026-03-17T22:36:58Z"
+            },
+            {
+              "originalPosition": 355,
+              "body": "`KeyScheduleS()`/`KeyScheduleR` mixes a function name with and without `()`. For consistency (and to avoid implying different identifiers), use the same convention for both (either include `()` on both or neither).\n",
+              "createdAt": "2026-03-17T22:36:58Z",
+              "updatedAt": "2026-03-17T22:36:58Z"
+            },
+            {
+              "originalPosition": 277,
+              "body": "`Export_*()` is not defined elsewhere in this draft, and HPKE APIs are typically named `Export()` (singular). Consider using the exact function name(s) from {{I-D.ietf-hpke-hpke}} / {{?RFC9180}} to avoid introducing an ambiguous or non-existent API identifier.\n",
+              "createdAt": "2026-03-17T22:36:58Z",
+              "updatedAt": "2026-03-17T22:36:58Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
