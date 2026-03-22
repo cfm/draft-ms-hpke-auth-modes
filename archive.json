@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-03-19T00:35:24.371043+00:00",
+  "timestamp": "2026-03-22T00:35:40.070607+00:00",
   "repo": "cfm/draft-ms-hpke-auth-modes",
   "labels": [
     {
@@ -244,7 +244,7 @@
       "labels": [],
       "body": "Facilitated by Claude.  This will need some further reframing (and copyediting), but it should achieve the `draft-dh-akem-extension = RFC 9180 - draft-ietf-hpke-hpke` substance we're looking for.",
       "createdAt": "2026-03-10T13:27:16Z",
-      "updatedAt": "2026-03-12T15:24:40Z",
+      "updatedAt": "2026-03-20T11:42:43Z",
       "baseRepository": "cfm/draft-ms-hpke-auth-modes",
       "baseRefName": "main",
       "baseRefOid": "1de3e24d54fbe912a450ddc6a9efb6cfbd8ae3db",
@@ -346,6 +346,44 @@
               "body": "`DH-AKEM-Hybrid.SetupR` has the same hyphenated identifier issue as `SetupS`, and it also places `info` last whereas the other Setup functions in this document consistently take `info` immediately after the receiver/sender key inputs. Align the parameter ordering with the other Setup APIs to make misuse less likely.\n```suggestion\ndef DH_AKEM_Hybrid_SetupS(pkR, info, pkR_pq, skS):\n  pq_ss, enc_pq = PQKEM.Encap(pkR_pq)\n  enc_dh, ctx = SetupAuthPSKS(pkR, info, pq_ss, enc_pq, skS)\n  return concat(enc_dh, enc_pq), ctx\n\ndef DH_AKEM_Hybrid_SetupR(enc, skR, pkS, info, skR_pq):\n```",
               "createdAt": "2026-03-10T15:01:52Z",
               "updatedAt": "2026-03-10T15:01:53Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDORjRsxc7qFTWq",
+          "commit": {
+            "abbreviatedOid": "09c230c"
+          },
+          "author": "rocodes",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "sorry, this review got away from me. Here are the comments I made before (for posterity?). ",
+          "createdAt": "2026-03-11T06:33:13Z",
+          "updatedAt": "2026-03-20T11:42:43Z",
+          "comments": [
+            {
+              "originalPosition": 75,
+              "body": "Minor suggestions (put implicit sender auth mention first since it applies to both modes; slight shortening of rest of text), plus suggesting a sentence alluding to a justification for the mixed modes (transitional/deployment readiness) instead of \"sufficient for many\". (Not attached to the wording, just an idea):\n\n> On top of these restored modes, this document defines DH-AKEM: named usage profiles of `mode_auth` and `mode_auth_psk` that expose the full HPKE context API (`Seal`, `Open`, and `Export`) to provide implicit sender authentication in the classical setting. When `mode_auth_psk` is used with the shared secret of a post-quantum KEM (PQ-KEM) encapsulation as the PSK, the construction provides hybrid PQ/T confidentiality, offering readily-deployable transitional security with off-the-shelf primitives.",
+              "createdAt": "2026-03-11T06:33:13Z",
+              "updatedAt": "2026-03-20T11:42:43Z"
+            },
+            {
+              "originalPosition": 94,
+              "body": "(Again, not to nit, but: would \"DH-AKEM-Transitional\" avoid overloading the term \"hybrid\" and emphasize the use case?)",
+              "createdAt": "2026-03-11T06:35:03Z",
+              "updatedAt": "2026-03-20T11:42:43Z"
+            },
+            {
+              "originalPosition": 75,
+              "body": "And then one more question: Should this be more generalized, i.e. should it be framed like:\n\n- Auth, AuthPSK are the modes defined\n- AuthPSK-transitional is a mode defined with a generic PQ secret (this maps to PSK mode in the hpke rfc, and that could be nice.) Assuming it's a properly generated PQ secret, the security assumptions are: the assumptions of the kdf, the pq kem, and the dh component)\n  - Special mention: AuthPSK-transitional's PQ secret can be based on encapsulating a receiver PQ-KEM\n  ? \n\nFinally: somewhere we need to mention that the KDF has to be a dual keyed kdf for the PSK modes? ~(which I assume is maybe mentioned somewhere in the Hpke PSK mode too)?~ edit: it's not: https://www.rfc-editor.org/rfc/rfc9180.html#section-4-2.2.1",
+              "createdAt": "2026-03-11T06:54:58Z",
+              "updatedAt": "2026-03-20T11:42:43Z"
+            },
+            {
+              "originalPosition": 269,
+              "body": "(I haven't checked the KEM and KDF IDs so I'm taking your word for it. But do we need to define these specific algorithms, or clarify choice of combination (p256 vs x25519)",
+              "createdAt": "2026-03-11T08:11:24Z",
+              "updatedAt": "2026-03-20T11:42:43Z"
             }
           ]
         }
