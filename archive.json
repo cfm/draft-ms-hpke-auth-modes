@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-03-22T00:35:40.070607+00:00",
+  "timestamp": "2026-03-24T00:31:02.721794+00:00",
   "repo": "cfm/draft-ms-hpke-auth-modes",
   "labels": [
     {
@@ -229,6 +229,78 @@
       "updatedAt": "2026-03-18T10:41:36Z",
       "closedAt": null,
       "comments": []
+    },
+    {
+      "number": 14,
+      "id": "I_kwDORjRsxc71xJ-D",
+      "title": "emphasize transitional properties: PQ/T confidentiality, implicit traditional authentication",
+      "url": "https://github.com/cfm/draft-ms-hpke-auth-modes/issues/14",
+      "state": "OPEN",
+      "author": "cfm",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "Minor suggestions (put implicit sender auth mention first since it applies to both modes; slight shortening of rest of text), plus suggesting a sentence alluding to a justification for the mixed modes (transitional/deployment readiness) instead of \"sufficient for many\". (Not attached to the wording, just an idea):\r\n\r\n> On top of these restored modes, this document defines DH-AKEM: named usage profiles of `mode_auth` and `mode_auth_psk` that expose the full HPKE context API (`Seal`, `Open`, and `Export`) to provide implicit sender authentication in the classical setting. When `mode_auth_psk` is used with the shared secret of a post-quantum KEM (PQ-KEM) encapsulation as the PSK, the construction provides hybrid PQ/T confidentiality, offering readily-deployable transitional security with off-the-shelf primitives.\r\n\r\n_Originally posted by @rocodes in https://github.com/cfm/draft-ms-hpke-auth-modes/pull/1#discussion_r2916205665_\r\n            ",
+      "createdAt": "2026-03-23T19:47:03Z",
+      "updatedAt": "2026-03-23T19:47:03Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 15,
+      "id": "I_kwDORjRsxc71xLnv",
+      "title": "specific usage notes",
+      "url": "https://github.com/cfm/draft-ms-hpke-auth-modes/issues/15",
+      "state": "OPEN",
+      "author": "cfm",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "And then one more question: Should this be more generalized, i.e. should it be framed like:\r\n\r\n- Auth, AuthPSK are the modes defined\r\n- AuthPSK-transitional is a mode defined with a generic PQ secret (this maps to PSK mode in the hpke rfc, and that could be nice.) Assuming it's a properly generated PQ secret, the security assumptions are: the assumptions of the kdf, the pq kem, and the dh component)\r\n  - Special mention: AuthPSK-transitional's PQ secret can be based on encapsulating a receiver PQ-KEM\r\n  ? \r\n\r\nFinally: somewhere we need to mention that the KDF has to be a dual keyed kdf for the PSK modes? ~(which I assume is maybe mentioned somewhere in the Hpke PSK mode too)?~ edit: it's not: https://www.rfc-editor.org/rfc/rfc9180.html#section-4-2.2.1\r\n\r\n_Originally posted by @rocodes in https://github.com/cfm/draft-ms-hpke-auth-modes/pull/1#discussion_r2916279506_\r\n            ",
+      "createdAt": "2026-03-23T19:48:11Z",
+      "updatedAt": "2026-03-23T22:29:32Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "cfm",
+          "authorAssociation": "OWNER",
+          "body": "@thomwiggers points out that this is not a PSK as typically understood: it's only receiver-authenticating, not mutually authenticating.",
+          "createdAt": "2026-03-23T22:29:32Z",
+          "updatedAt": "2026-03-23T22:29:32Z"
+        }
+      ]
+    },
+    {
+      "number": 16,
+      "id": "I_kwDORjRsxc71xNU5",
+      "title": "call profiles \"transitional\" rather than \"hybrid\"",
+      "url": "https://github.com/cfm/draft-ms-hpke-auth-modes/issues/16",
+      "state": "OPEN",
+      "author": "cfm",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "(Again, not to nit, but: would \"DH-AKEM-Transitional\" avoid overloading the term \"hybrid\" and emphasize the use case?)\r\n\r\n_Originally posted by @rocodes in https://github.com/cfm/draft-ms-hpke-auth-modes/pull/1#discussion_r2916211482_\r\n            ",
+      "createdAt": "2026-03-23T19:49:20Z",
+      "updatedAt": "2026-03-23T19:49:20Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 17,
+      "id": "I_kwDORjRsxc710I7L",
+      "title": "cite related work",
+      "url": "https://github.com/cfm/draft-ms-hpke-auth-modes/issues/17",
+      "state": "OPEN",
+      "author": "cfm",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "[Shadowfax](https://eprint.iacr.org/2025/154.pdf) is of particular interest, but it's a new primitive, whereas this construction composes existing building blocks.",
+      "createdAt": "2026-03-23T22:32:14Z",
+      "updatedAt": "2026-03-23T22:32:14Z",
+      "closedAt": null,
+      "comments": []
     }
   ],
   "pulls": [
@@ -244,7 +316,7 @@
       "labels": [],
       "body": "Facilitated by Claude.  This will need some further reframing (and copyediting), but it should achieve the `draft-dh-akem-extension = RFC 9180 - draft-ietf-hpke-hpke` substance we're looking for.",
       "createdAt": "2026-03-10T13:27:16Z",
-      "updatedAt": "2026-03-20T11:42:43Z",
+      "updatedAt": "2026-03-23T19:51:36Z",
       "baseRepository": "cfm/draft-ms-hpke-auth-modes",
       "baseRefName": "main",
       "baseRefOid": "1de3e24d54fbe912a450ddc6a9efb6cfbd8ae3db",
@@ -384,6 +456,46 @@
               "body": "(I haven't checked the KEM and KDF IDs so I'm taking your word for it. But do we need to define these specific algorithms, or clarify choice of combination (p256 vs x25519)",
               "createdAt": "2026-03-11T08:11:24Z",
               "updatedAt": "2026-03-20T11:42:43Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDORjRsxc7uE9a4",
+          "commit": {
+            "abbreviatedOid": "eebaeab"
+          },
+          "author": "cfm",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-03-23T19:51:23Z",
+          "updatedAt": "2026-03-23T19:51:23Z",
+          "comments": [
+            {
+              "originalPosition": 75,
+              "body": "Thanks, @rocodes.  I think #8 has already helped push in this direction, but I'll revise further along these lines in #14 and #15.",
+              "createdAt": "2026-03-23T19:51:23Z",
+              "updatedAt": "2026-03-23T19:51:23Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDORjRsxc7uE9ty",
+          "commit": {
+            "abbreviatedOid": "eebaeab"
+          },
+          "author": "cfm",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-03-23T19:51:36Z",
+          "updatedAt": "2026-03-23T19:51:36Z",
+          "comments": [
+            {
+              "originalPosition": 94,
+              "body": "Filed in #16.",
+              "createdAt": "2026-03-23T19:51:36Z",
+              "updatedAt": "2026-03-23T19:51:36Z"
             }
           ]
         }
