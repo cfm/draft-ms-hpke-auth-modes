@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-03-24T00:31:02.721794+00:00",
+  "timestamp": "2026-04-02T00:35:29.913397+00:00",
   "repo": "cfm/draft-ms-hpke-auth-modes",
   "labels": [
     {
@@ -258,7 +258,7 @@
       "labels": [],
       "body": "And then one more question: Should this be more generalized, i.e. should it be framed like:\r\n\r\n- Auth, AuthPSK are the modes defined\r\n- AuthPSK-transitional is a mode defined with a generic PQ secret (this maps to PSK mode in the hpke rfc, and that could be nice.) Assuming it's a properly generated PQ secret, the security assumptions are: the assumptions of the kdf, the pq kem, and the dh component)\r\n  - Special mention: AuthPSK-transitional's PQ secret can be based on encapsulating a receiver PQ-KEM\r\n  ? \r\n\r\nFinally: somewhere we need to mention that the KDF has to be a dual keyed kdf for the PSK modes? ~(which I assume is maybe mentioned somewhere in the Hpke PSK mode too)?~ edit: it's not: https://www.rfc-editor.org/rfc/rfc9180.html#section-4-2.2.1\r\n\r\n_Originally posted by @rocodes in https://github.com/cfm/draft-ms-hpke-auth-modes/pull/1#discussion_r2916279506_\r\n            ",
       "createdAt": "2026-03-23T19:48:11Z",
-      "updatedAt": "2026-03-23T22:29:32Z",
+      "updatedAt": "2026-03-31T02:34:38Z",
       "closedAt": null,
       "comments": [
         {
@@ -267,6 +267,13 @@
           "body": "@thomwiggers points out that this is not a PSK as typically understood: it's only receiver-authenticating, not mutually authenticating.",
           "createdAt": "2026-03-23T22:29:32Z",
           "updatedAt": "2026-03-23T22:29:32Z"
+        },
+        {
+          "author": "rocodes",
+          "authorAssociation": "COLLABORATOR",
+          "body": "My opinion, esp based on the last comment, is to describe the general version (Auth, AuthPSK), treat AuthPSK-with-PQ-shared-secret as a subset of the latter, and not even mention the AuthPSK-with-receiver-PQ-KEM in the draft at all since it is kind of a \"clever\" misuse of the API that we are adapting to our own purposes and can justify ourselves, but might not merit being standardized. \n\nIn the \"Example applications\" I would generalize the example to the PQ PSK and describe the transitional properties provided, but assume a real PSK, skip the receiver KEM parts.\n\nWhat do you think?",
+          "createdAt": "2026-03-31T02:34:38Z",
+          "updatedAt": "2026-03-31T02:34:38Z"
         }
       ]
     },
@@ -282,9 +289,17 @@
       "labels": [],
       "body": "(Again, not to nit, but: would \"DH-AKEM-Transitional\" avoid overloading the term \"hybrid\" and emphasize the use case?)\r\n\r\n_Originally posted by @rocodes in https://github.com/cfm/draft-ms-hpke-auth-modes/pull/1#discussion_r2916211482_\r\n            ",
       "createdAt": "2026-03-23T19:49:20Z",
-      "updatedAt": "2026-03-23T19:49:20Z",
+      "updatedAt": "2026-03-31T03:07:10Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "rocodes",
+          "authorAssociation": "COLLABORATOR",
+          "body": "If this works for you @cfm, I'll prepare a small PR, just with reference to the AuthPSK with PQ secret sub-case. (Can also do in conjunction with another change, such as generalizing the example application https://github.com/cfm/draft-ms-hpke-auth-modes/issues/15#issuecomment-4159429174)",
+          "createdAt": "2026-03-31T03:05:51Z",
+          "updatedAt": "2026-03-31T03:07:10Z"
+        }
+      ]
     },
     {
       "number": 17,
@@ -298,7 +313,31 @@
       "labels": [],
       "body": "[Shadowfax](https://eprint.iacr.org/2025/154.pdf) is of particular interest, but it's a new primitive, whereas this construction composes existing building blocks.",
       "createdAt": "2026-03-23T22:32:14Z",
-      "updatedAt": "2026-03-23T22:32:14Z",
+      "updatedAt": "2026-03-31T03:05:01Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "rocodes",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Also https://petsymposium.org/2018/files/papers/issue1/paper12-2018-1-source.pdf (re deniable authenticated key exchanges, re \"transitional\" security aka classical auth but PQ confidentiality);  potentially https://eprint.iacr.org/2024/890 (Gandalf / deniable ring signatures, some of same authors as shadowfax) \n\nShadowfax emphasizes 2 KEMs + hybrid aspect plus deniability, but if we focus on the classical construction and mention that the PQ / transitional construction is a sub-case, we should clarify in what context we're referring to shadowfax, especially if we don't mention the second KEM (https://github.com/cfm/draft-ms-hpke-auth-modes/issues/15#issuecomment-4159429174)",
+          "createdAt": "2026-03-31T03:05:01Z",
+          "updatedAt": "2026-03-31T03:05:01Z"
+        }
+      ]
+    },
+    {
+      "number": 18,
+      "id": "I_kwDORjRsxc743uU2",
+      "title": "Mention deniability / more strongly mention implicit authentication",
+      "url": "https://github.com/cfm/draft-ms-hpke-auth-modes/issues/18",
+      "state": "OPEN",
+      "author": "rocodes",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "The word \"deniable\"/\"deniability\" should probably appear in the draft (possibly where KCI is mentioned?), because part of the purpose of preserving the auth and authpsk modes despite the KCI tradeoff is to allow for implicit authentication/deniability, and that informs use cases for this draft\n\nRelated: #17 ",
+      "createdAt": "2026-03-31T03:05:18Z",
+      "updatedAt": "2026-03-31T03:05:18Z",
       "closedAt": null,
       "comments": []
     }
