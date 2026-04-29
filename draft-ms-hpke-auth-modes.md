@@ -32,6 +32,11 @@ author:
     role: editor
     organization: Freedom of the Press Foundation
     email: ro@freedom.press
+  - fullname: Giulio Berra
+    role: editor
+    organization: Freedom of the Press Foundation
+    email: giulio@freedom.press
+
 
 normative:
   I-D.ietf-hpke-hpke:
