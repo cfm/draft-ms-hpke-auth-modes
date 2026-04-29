@@ -16,6 +16,7 @@ keyword:
   - authenticated KEM
   - DHKEM
   - HPKE
+  - KEM combiner
 venue:
 #  group: HPKE
 #  type: Working Group
@@ -67,21 +68,32 @@ informative:
     date: 2023
     rc: "Advances in Cryptology -- ASIACRYPT 2023"
     target: https://eprint.iacr.org/2023/1480
+  I-D.draft-connolly-cfrg-xwing-kem-10:
 
 --- abstract
 
 The standards-track {{!I-D.ietf-hpke-hpke}} supersedes the informational
 {{?RFC9180}}, omitting its authenticated modes `mode_auth` and `mode_auth_psk`.
-This document restores those two modes as a strict extension, requiring only the
+This document restores `mode_auth_psk` mode as a strict extension, and illustrates
+how the restored mode can be used with a post-quantum shared secret as the PSK
+by application developers seeking to achieve hybrid PQ/T confidentiality while
+transitioning to quantum-safe encryption, without deprecating the implicit
+authentication properties of DH-AKEM on which many applications still rely.
+
+This extension requires only the
 addition of `AuthEncap()`/`AuthDecap()` to the DHKEM, the definition of four
 setup functions, and a change in `VerifyPSKInputs()`.  The extension does not
 alter the externally observable behavior of the existing HPKE modes standardized
 in {{!I-D.ietf-hpke-hpke}}.
+Although `AuthEncap()`/`AuthDecap()` reintroduce the functionality of `mode_auth`,
+the mode itself is not restored due to its inability to provide quantum safety.
 
-This document also illustrates, informatively, how the restored modes can be
-used. One such application uses `mode_auth_psk` with a post-quantum KEM (PQ-KEM)
-shared secret as the PSK, providing hybrid PQ/T confidentiality. This material
-is provided to motivate the extension and may be developed as separate work.
+The transitional nature of the AuthPSK construction and its security properties
+are discussed.
+This document also illustrates how the restored mode can be used to provide
+ready-made KEM combiner-like functionality ({{!I-D.ounsworth-cfrg-kem-combiners}}).
+It provides examples for the usage of such a construction as a transitional
+step towards quantum readiness to motivate the extension.
 
 --- middle
 
@@ -89,54 +101,71 @@ is provided to motivate the extension and may be developed as separate work.
 
 {{!I-D.ietf-hpke-hpke}} is the standards-track successor to the informational
 {{?RFC9180}} and omits the authenticated modes `mode_auth` and `mode_auth_psk`
-to simplify the standard. However, some protocols require an authenticated
-key-encapsulation mechanism (AKEM)---a KEM whose shared secret is implicitly
-bound to the sender's static private key---without requiring a full
-authenticated encryption context.  The DHKEM construction in
-{{!I-D.ietf-hpke-hpke}} already contains all the primitives needed:
+to simplify the standard.
+However, some applications make use of the implicit sender authentication those
+modes provide.
+The DHKEM construction in {{?RFC9180}} already contains all the primitives needed:
 `AuthEncap()` computes a static-static DH value `DH(skS, pkR)` alongside the
 ephemeral-static value and mixes both into the key derivation, binding the
 output to the sender's key pair.
 
-The normative portion of this document is small.  It restores `mode_auth` and
+The normative portion of this document is small.  It restores
 `mode_auth_psk` as a strict extension to {{!I-D.ietf-hpke-hpke}}, requiring only
 `AuthEncap()`/`AuthDecap()` on the DHKEM, four setup functions, and a modified
 `VerifyPSKInputs()`. The externally observable behavior of existing HPKE modes
 is unchanged.
+Although `AuthEncap()`/`AuthDecap()` reintroduce the functionality of `mode_auth`,
+the mode, which relies solely on a DHKEM construction, is not restored due to its
+inability to provide quantum-safe encryption.
+Instead, it is instead treated as a building block to `mode_auth_psk`, as seen in
+{{sec-dh-akem}}.
 
-{{sec-dh-akem}} and {{sec-suites}} describe, informatively, how the restored
-modes can be used, including a construction that layers a post-quantum KEM
-shared secret as the PSK to achieve hybrid PQ/T confidentiality as defined in
-{{Section 5 of ?RFC9794}}. That material is provided to motivate the extension
-and may be developed as separate work.
+{{sec-authencap}} describes how the restored
+mode can be used to achieve hybrid PQ/T confidentiality as
+defined in {{Section 5 of ?RFC9794}} during the transition to quantum-safe encryption.
+{{sec-discussion}} discusses the transitional nature of this construction and reviews
+the guidance available to application developers looking to begin the transition to
+quantum-safe encryption with existing libraries and APIs.
+
+{{sec-use-cases}} discusses how the extension can be used as a type of black-box KEM combiner
+({{!I-D.ounsworth-cfrg-kem-combiners}}), with reference to {{Alwen2023}}.
+Example use cases are provided to motivate the extension.
 
 # Conventions and Definitions
 {::boilerplate bcp14-tagged}
 
-Terms from {{I-D.ietf-hpke-hpke}} are used without redefinition. The following
-additional term is used herein:
+Terms from {{I-D.ietf-hpke-hpke}} are used without redefinition; particular reference is
+made to the **DHKEM** construction {{Section 4.1 of ?RFC9180}}.
+The following additional term is used herein:
 
 - **AKEM:** a KEM whose encapsulation additionally takes the sender's static
   private key and implicitly binds the shared secret to it.
 
-# Authenticated Mode Extensions to {{I-D.ietf-hpke-hpke}} {#sec-ext}
+# Authenticated Pre-Shared Key Mode Extension to {{I-D.ietf-hpke-hpke}} {#sec-ext}
 
 This section specifies the additions to {{!I-D.ietf-hpke-hpke}} required to
-restore `mode_auth` and `mode_auth_psk`. These extensions are defined so that
+restore `mode_auth_psk`. These extensions are defined so that
 the externally observable behavior of the existing HPKE modes is unchanged,
 although this document modifies the `VerifyPSKInputs()` procedure in
 {{I-D.ietf-hpke-hpke}}.
 
 ## Mode Identifiers
 
-The reserved entries for values `0x02` and `0x03` in Table 1 of
-{{!I-D.ietf-hpke-hpke}} are replaced with the following mode identifiers, as
+The reserved entry for value `0x03` in Table 1 of
+{{!I-D.ietf-hpke-hpke}} is replaced with the following mode identifier, as
 originally specified in Table 1 of {{?RFC9180}}:
 
 ~~~
-mode_auth     = 0x02
 mode_auth_psk = 0x03
 ~~~
+
+The value `0x02` remains reserved.
+
+## Exclusion of 0x02 `mode_auth` from Mode Identifiers
+
+Although restoring  the `AuthEncap()` and `AuthDecap()` functions would also
+allow for restoring `mode_auth`, this mode cannot offer quantum-safe encryption,
+and its identifier is therefore not reintroduced.
 
 ## DHKEM Extension: `AuthEncap()` and `AuthDecap()` {#sec-authencap}
 
@@ -208,16 +237,6 @@ and 5.1.4 of ?RFC9180}}.  `KeyScheduleS()`/`KeyScheduleR()` and
 {{sec-authencap}} respectively.
 
 ~~~
-def SetupAuthS(pkR, info, skS):
-  shared_secret, enc = AuthEncap(pkR, skS)
-  return enc, KeyScheduleS(mode_auth, shared_secret, info,
-                           default_psk, default_psk_id)
-
-def SetupAuthR(enc, skR, info, pkS):
-  shared_secret = AuthDecap(enc, skR, pkS)
-  return KeyScheduleR(mode_auth, shared_secret, info,
-                      default_psk, default_psk_id)
-
 def SetupAuthPSKS(pkR, info, psk, psk_id, skS):
   shared_secret, enc = AuthEncap(pkR, skS)
   return enc, KeyScheduleS(mode_auth_psk, shared_secret, info,
@@ -236,20 +255,93 @@ In addition to the validation requirements in {{Section 7.1.4 of
 key `pkS` before use in `AuthDecap()`, applying the same validation rules as for
 other public key inputs. Validation failure MUST yield a `ValidationError`.
 
-# Example Applications (Informative) {#sec-dh-akem}
+# DH-AKEM with PSK {#sec-dh-akem}
 
-This section is informative. It illustrates how the authenticated modes defined
+This section illustrates how the authenticated mode defined
 in {{sec-ext}} can be used.  Any AEAD identifier from {{I-D.ietf-hpke-hpke}} may
 be used; the resulting context supports `Seal()`, `Open()`, and `Export()`.
 Key generation follows `GenerateKeyPair()` from {{I-D.ietf-hpke-hpke}}.
 
-The modes may be used directly via their setup functions.  For `mode_auth`, the
-sender calls `SetupAuthS(pkR, info, skS)` and the receiver calls
-`SetupAuthR(enc, skR, info, pkS)`.  For `mode_auth_psk`, the sender calls
-`SetupAuthPSKS()` and the receiver calls `SetupAuthPSKR()`, with a shared PSK
+`mode_auth_psk` may be used via its setup function: the sender calls
+`SetupAuthPSKS()` and the receiver calls `SetupAuthPSKR()`, with a pre-shared key
 and PSK identifier, as defined in {{sec-setup}}.
 
-## Hybrid PQ/T Profile (`mode_auth_psk` with PQ-KEM PSK) {#sec-hybrid}
+This mode SHOULD be used with a quantum-safe PSK as described below in
+order to offer hybrid confidentiality properties.
+
+## PQ/T Hybrid Construction {#sec-hybrid}
+
+~~~
+def HybridSetupS(pkR, skS, info, psk, psk_id):
+  enc_dh, ctx = SetupAuthPSKS(pkR, info, psk, psk_id, skS)
+  return enc_dh, ctx
+
+def HybridSetupR(enc, skR, pkS, info, psk, psk):
+  return SetupAuthPSKR(enc_dh, skR, info, psk, psk_id, pkS)
+~~~
+
+The `suite_id` in the HPKE key schedule reflects only the classical ciphersuite
+`(KEM_ID, KDF_ID, AEAD_ID)`.
+
+**Hybrid confidentiality.** `KeyScheduleS()`/`KeyScheduleR()` delegate to
+`CombineSecrets`, for which {{!I-D.ietf-hpke-hpke}} defines two variants. In
+`CombineSecrets_TwoStage()`, the combination is `secret =
+LabeledExtract(dhkem_shared_secret, "secret", psk)`, equivalent to
+`HKDF-Extract(salt = dhkem_shared_secret, IKM = psk)` {{?RFC5869}}. In
+`CombineSecrets_OneStage()`, `dhkem_shared_secret` and `psk` are length-prefixed
+and concatenated before a single `LabeledDerive()` call. In both cases,
+`dhkem_shared_secret` and `psk` enter the combination as independent inputs.
+The intended design property is that `secret` remains pseudorandom as long as at
+least one of the two inputs is---meaning an adversary would need to attack both
+the classical DH-based component and the PQ-KEM to recover `secret`, as seen
+in {{!I-D.ounsworth-cfrg-kem-combiners}} and subsequently,
+{{?I-D.draft-connolly-cfrg-xwing-kem-10}}.
+
+Whether
+this property holds formally for a specific `CombineSecrets` variant depends on
+that variant's security analysis, which is outside the scope of this document.
+
+Authentication remains entirely classical; a quantum adversary that breaks the
+DH assumption can also forge sender authentication, so post-quantum sender
+authentication would require an additional PQ signature. Note that {{Alwen2023}}
+describes a related hybrid construction in which a PQ *AKEM* (rather than a
+plain KEM) is used to generate the PSK, which would additionally provide
+post-quantum sender authentication; that stronger construction is outside the
+scope of this document.
+
+**PSK freshness.** The PSK `psk` MUST satisfy the
+entropy requirement in {{Section 9.5 of !I-D.ietf-hpke-hpke}} (32 bytes of
+uniform randomness).
+
+## Discussion {#sec-discussion}
+
+Downstream application developers are in a bind: though they may be aware of advice to
+implement quantum-safe encryption on an accelerated timeline, they may encounter rapidly-
+evolving guidance on best practices, a lack of direct parity with classical constructions,
+and a releative paucity of stable APIs suitable for non-cryptographers.
+
+Non-cryptographers looking to offer classical/quantum-safe (hybrid) encryption in their
+own applications can refer to {{?I-D.draft-connolly-cfrg-xwing-kem-10}}, although existing
+implementations are at an early stage of development; or may refer to the now-expired
+{{!I-D.ounsworth-cfrg-kem-combiners}}, but will need to manage their own encryption context.
+
+Further, the guidance on post-quantum signature schemes is still under active development,
+and if libraries are available, they come with strong caveats about changing APIs and general
+maturity.
+
+Although DH-based classical authentication is not future-forward, it remains in use.
+Simple APIs that allow application developers to deploy quantum-resistent encryption as
+a transitional measure without deprecating the classical authentication properties of
+their application provides a path towards quantum readiness.
+
+### AKEM/PQ KEM Combiner (Informative) {sec-combiner}
+
+Using `mode_auth_psk` with the shared secret from a PQ-KEM as the provided "psk"
+value can provide transitional security properties, namely, hybrid PQ/T confidentiality
+and classical authentication, using ready-made libraries and APIs.
+
+Although this is not a pre-shared key in the true sense, the terminology from
+{{Alwen2023}}, where a similar construction is described, is retained.
 
 The following terms are used in this section:
 
@@ -286,19 +378,11 @@ generated for each encapsulation; reuse of a prior `enc_pq` is prohibited. The
 via application-layer framing or the `info` parameter when multiple PQ-KEM
 algorithms are supported.
 
-**Hybrid confidentiality.** `KeyScheduleS()`/`KeyScheduleR()` delegate to
-`CombineSecrets`, for which {{!I-D.ietf-hpke-hpke}} defines two variants. In
-`CombineSecrets_TwoStage()`, the combination is `secret =
-LabeledExtract(dhkem_shared_secret, "secret", psk)`, equivalent to
-`HKDF-Extract(salt = dhkem_shared_secret, IKM = ss_pq)` {{?RFC5869}}. In
-`CombineSecrets_OneStage()`, `dhkem_shared_secret` and `psk` are length-prefixed
-and concatenated before a single `LabeledDerive()` call. In both cases,
-`dhkem_shared_secret` and `ss_pq` enter the combination as independent inputs.
-The intended design property is that `secret` remains pseudorandom as long as at
-least one of the two inputs is---meaning an adversary would need to attack both
-the classical DH-based component and the PQ-KEM to recover `secret`.  Whether
-this property holds formally for a specific `CombineSecrets` variant depends on
-that variant's security analysis, which is outside the scope of this document.
+This is a cheap implementation of a construction similar to
+{{!I-D.ounsworth-cfrg-kem-combiners}}. The ML-KEM shared secret `ss_pq` satisfies the
+entropy requirement in {{Section 9.5 of !I-D.ietf-hpke-hpke}} (32 bytes of
+uniform randomness).
+
 Authentication remains entirely classical; a quantum adversary that breaks the
 DH assumption can also forge sender authentication, so post-quantum sender
 authentication would require an additional PQ signature. Note that {{Alwen2023}}
@@ -336,7 +420,7 @@ profile, yielding a combined encapsulation of 1120 bytes.
 # Security Considerations {#sec-security}
 
 The sender-authentication and key-compromise impersonation (KCI) properties of
-`mode_auth` and `mode_auth_psk` are as described in {{Sections 9.1 and 9.1.1 of
+`mode_auth_psk` are as described in {{Sections 9.1 and 9.1.1 of
 ?RFC9180}}, which apply without change to the functions defined in {{sec-ext}}.
 Security properties specific to the hybrid PQ/T construction are discussed
 informatively in {{sec-hybrid}}.
