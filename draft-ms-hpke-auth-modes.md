@@ -27,7 +27,7 @@ author:
     role: editor
     organization: Freedom of the Press Foundation
     email: cfm@acm.org
-  - fullname: Rowen S.
+  - fullname: Rowen Shane
     role: editor
     organization: Freedom of the Press Foundation
     email: ro@freedom.press
