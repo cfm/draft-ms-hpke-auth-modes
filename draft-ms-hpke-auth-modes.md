@@ -391,31 +391,6 @@ plain KEM) is used to generate the PSK, which would additionally provide
 post-quantum sender authentication; that stronger construction is outside the
 scope of this document.
 
-**PSK freshness.** The ML-KEM shared secret `ss_pq` satisfies the
-entropy requirement in {{Section 9.5 of !I-D.ietf-hpke-hpke}} (32 bytes of
-uniform randomness). The prohibition on `enc_pq` reuse above ensures a fresh PSK
-per session.
-
-# HPKE-Auth Profiles (Informative) {#sec-suites}
-
-This section is informative. The profiles below are suggested KEM and KDF
-parameter sets for the example applications in {{sec-dh-akem}}; they are not
-registered by this document. Because `AEAD_ID` is selected by the application,
-these are parameter sets, not fully determined ciphersuites. `KEM_ID` and
-`KDF_ID` are drawn from the registries in {{I-D.ietf-hpke-hpke}}.
-
-| Profile                                    | `KEM_ID` | `KDF_ID` | `PQKEM`     | `Nenc` | `Nenc_pq` |
-| ------------------------------------------ | -------- | -------- | ----------- | ----- | ---------- |
-| `HPKE-Auth-X25519-SHA256`                  | `0x0020` | `0x0001` | ---         | 32    | ---        |
-| `HPKE-Auth-P256-SHA256`                    | `0x0010` | `0x0001` | ---         | 65    | ---        |
-| `HPKE-Auth-X448-SHA512`                    | `0x0021` | `0x0003` | ---         | 56    | ---        |
-| `HPKE-Auth-Hybrid-X25519-SHA256-MLKEM768`  | `0x0020` | `0x0001` | ML-KEM-768  | 32    | 1088       |
-| `HPKE-Auth-Hybrid-X25519-SHA256-MLKEM1024` | `0x0020` | `0x0001` | ML-KEM-1024 | 32    | 1568       |
-| `HPKE-Auth-Hybrid-P256-SHA256-MLKEM768`    | `0x0010` | `0x0001` | ML-KEM-768  | 65    | 1088       |
-
-ML-KEM parameters are from {{FIPS203}}.
-`HPKE-Auth-Hybrid-X25519-SHA256-MLKEM768` is the suggested default hybrid
-profile, yielding a combined encapsulation of 1120 bytes.
 
 # Security Considerations {#sec-security}
 
