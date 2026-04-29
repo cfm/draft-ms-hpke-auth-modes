@@ -301,7 +301,7 @@ Whether
 this property holds formally for a specific `CombineSecrets` variant depends on
 that variant's security analysis, which is outside the scope of this document.
 
-Authentication remains entirely classical; a quantum adversary that breaks the
+A quantum adversary that breaks the
 DH assumption can also forge sender authentication, so post-quantum sender
 authentication would require an additional PQ signature. Note that {{Alwen2023}}
 describes a related hybrid construction in which a PQ *AKEM* (rather than a
@@ -334,29 +334,37 @@ Simple APIs that allow application developers to deploy quantum-resistent encryp
 a transitional measure without deprecating the classical authentication properties of
 their application provides a path towards quantum readiness.
 
-### AKEM/PQ KEM Combiner (Informative) {sec-combiner}
+### AKEM/PQ KEM "Combiner" (Informative) {sec-combiner}
 
 Using `mode_auth_psk` with the shared secret from a PQ-KEM as the provided "psk"
-value can provide transitional security properties, namely, hybrid PQ/T confidentiality
-and classical authentication, using ready-made libraries and APIs.
+value allows application developers to provide hybrid security properties,
+namely, hybrid PQ/T confidentiality and classical authentication, using ready-made
+libraries and APIs.
 
-Although this is not a pre-shared key in the true sense, the terminology from
+Although not a true pre-shared key, the terminology from
 {{Alwen2023}}, where a similar construction is described, is retained.
+This off-the-shelf implementation of {{!I-D.ounsworth-cfrg-kem-combiners}} uses
+`mode_auth_psk` from {{?RFC9180}}, as found in existing HPKE implementations such as
+tink-crypto (Google), mlsc++ (Cisco), hpke-rs (Cryspen), to allow non-cryptographers
+to construct a KEM combiner without having to manage their own encryption context.
 
-The following terms are used in this section:
+The sender encapsulates a PQ-KEM to the receiver's PQ public key `pkR_pq`, using
+the resulting shared secret `ss_pq` as "PSK", and a static identifier as the
+PSK identifier. The receiver's PQ public key `pkR_pq` is included in `info` to
+bind it to the key schedule.
+
+The shared secret `ss_pq` must satisfy the entropy requirement in
+{{Section 9.5 of !I-D.ietf-hpke-hpke}}.
+
+As with {{sec-hybrid}}, only classical sender authentication is provided.
+
+An example construction is provided below, with reference to the following terms:
 
 - **PQ-KEM:** a post-quantum KEM, e.g., ML-KEM {{FIPS203}} or an
   algorithm from {{?I-D.ietf-hpke-pq}}.
 - `PQKEM.Encap(pkR_pq)`: PQ-KEM encapsulation; returns `(ss_pq, enc_pq)`.
 - `PQKEM.Decap(enc_pq, skR_pq)`: PQ-KEM decapsulation; returns `ss_pq`.
 - `Nenc_pq`: the fixed ciphertext length of the chosen PQ-KEM, in bytes.
-
-The sender encapsulates a PQ-KEM to the receiver's PQ public key `pkR_pq`, using
-the resulting shared secret `ss_pq` as the HPKE PSK and the PQ ciphertext
-`enc_pq` as the PSK identifier. The receiver's PQ public key `pkR_pq` is
-included in `info` to bind it to the key schedule. The combined encapsulation is
-`concat(enc_dh, enc_pq)`; `Nenc` bytes are parsed as `enc_dh` and the remaining
-`Nenc_pq` bytes as `enc_pq`.
 
 ~~~
 def HybridSetupS(pkR, pkR_pq, skS, info):
@@ -377,20 +385,6 @@ generated for each encapsulation; reuse of a prior `enc_pq` is prohibited. The
 `(KEM_ID, KDF_ID, AEAD_ID)`; the PQ-KEM algorithm identity should be conveyed
 via application-layer framing or the `info` parameter when multiple PQ-KEM
 algorithms are supported.
-
-This is a cheap implementation of a construction similar to
-{{!I-D.ounsworth-cfrg-kem-combiners}}. The ML-KEM shared secret `ss_pq` satisfies the
-entropy requirement in {{Section 9.5 of !I-D.ietf-hpke-hpke}} (32 bytes of
-uniform randomness).
-
-Authentication remains entirely classical; a quantum adversary that breaks the
-DH assumption can also forge sender authentication, so post-quantum sender
-authentication would require an additional PQ signature. Note that {{Alwen2023}}
-describes a related hybrid construction in which a PQ *AKEM* (rather than a
-plain KEM) is used to generate the PSK, which would additionally provide
-post-quantum sender authentication; that stronger construction is outside the
-scope of this document.
-
 
 # Security Considerations {#sec-security}
 
