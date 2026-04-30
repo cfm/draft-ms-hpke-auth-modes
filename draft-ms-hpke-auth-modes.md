@@ -74,6 +74,18 @@ informative:
     rc: "Advances in Cryptology -- ASIACRYPT 2023"
     target: https://eprint.iacr.org/2023/1480
   I-D.draft-connolly-cfrg-xwing-kem-10:
+  PQCodePkgs:
+    title: "PQ Code Package Repositories (accessed 2026-04-30)"
+    author:
+      org: "Post Quantum Cryptography Alliance"
+    date: 2026
+    target: https://github.com/orgs/pq-code-package/repositories
+  Wireguard2020:
+    title: "WireGuard: Next Generation Kernel Network Tunnel"
+    author:
+      - name: Jason A. Donenfeld
+    date: 2020
+    target: https://www.wireguard.com/papers/wireguard.pdf
 
 --- abstract
 
@@ -320,44 +332,25 @@ A quantum adversary with access to the PSK can also forge authenticated messages
 entropy requirement in {{Section 9.5 of !I-D.ietf-hpke-hpke}} (32 bytes of
 uniform randomness).
 
-## Discussion {#sec-discussion}
-
-Downstream application developers are in a bind: though they may be aware of advice to
-implement quantum-safe encryption on an accelerated timeline, they may encounter rapidly-
-evolving guidance on best practices, a lack of direct parity with classical constructions,
-and a releative paucity of stable APIs suitable for non-cryptographers.
-
-Non-cryptographers looking to offer classical/quantum-safe (hybrid) encryption in their
-own applications can refer to {{?I-D.draft-connolly-cfrg-xwing-kem-10}}, although existing
-implementations are at an early stage of development; or may refer to the now-expired
-{{!I-D.ounsworth-cfrg-kem-combiners}}, but will need to manage their own encryption context.
-
-Further, the guidance on post-quantum signature schemes is still under active development,
-and if libraries are available, they come with strong caveats about changing APIs and general
-maturity.
-
-Although DH-based classical authentication is not future-forward, it remains in use.
-Simple APIs that allow application developers to deploy quantum-resistent encryption as
-a transitional measure without deprecating the classical authentication properties of
-their application provides a path towards quantum readiness.
-
-### AKEM/PQ KEM "Combiner" (Informative) {sec-combiner}
+### AKEM/PQ KEM "Combiner" (Informative) {#sec-combiner}
 
 Using `mode_auth_psk` with the shared secret from a PQ-KEM as the provided "psk"
-value allows application developers to provide hybrid security properties,
-namely, hybrid PQ/T confidentiality and classical authentication, using ready-made
-libraries and APIs.
+value allows application developers to provide hybrid-transitional security properties
+using ready-made libraries and APIs. Although not a true pre-shared key, the terminology
+from similar work by {{Alwen2023}} ("pskAPKE") is retained.
 
-Although not a true pre-shared key, the terminology from
-{{Alwen2023}}, where a similar construction is described, is retained.
-This off-the-shelf implementation of {{!I-D.ounsworth-cfrg-kem-combiners}} uses
-`mode_auth_psk` from {{?RFC9180}}, as found in existing HPKE implementations such as
-tink-crypto (Google), mlsc++ (Cisco), hpke-rs (Cryspen), to allow non-cryptographers
-to construct a KEM combiner without having to manage their own encryption context.
+The result is a KEM combiner-style construction {{!I-D.ounsworth-cfrg-kem-combiners}}
+that provides hybrid PQ/T confidentiality and classical authentication, without requiring
+developers to manage their own encryption context, a frequent source of developer error
+and a motivating factor for the API design choices of {{?RFC9180}}.
 
-The sender encapsulates a PQ-KEM to the receiver's PQ public key `pkR_pq`, using
-the resulting shared secret `ss_pq` as "PSK", and a static identifier as the
-PSK identifier. The receiver's PQ public key `pkR_pq` is included in `info` to
+In addition to the keypair specified in {{sec-setup}}, the receiver holds an additional
+post-quantim keypair, (`skR_pq`, `pkR_pq`).
+Prior to setting up an HPKE encryption context (either via `Setup` or via a single-shot
+API), the sender encapsulates a PQ-KEM to the receiver's PQ public key `pkR_pq`, using
+the resulting shared secret `ss_pq` as a "PSK", and a static identifier as the PSK
+identifier.
+The ciphertext encapsulation of `ss_pq`, `enc_pq`, is included in `info` to
 bind it to the key schedule.
 
 An example construction is provided below, with reference to the following terms:
@@ -380,13 +373,52 @@ def HybridSetupR(enc, skR, skR_pq, pkR_pq, pkS, info):
   return SetupAuthPSKR(enc_dh, skR, concat(info, enc_pq), ss_pq, enc_pq, pkS)
 ~~~
 
+**Classical (implicit) sender authentication:** Only classical sender
+authentication is provided; in contrast to {{sec-hybrid}}, the "psk" value
+provides no sender authentication, as it is constructed rather than pre-shared.
+This limitation is assessed in {{sec-motivation}}.
+
+The `info` parameter will exceed 64 bytes. Implementors must ensure their choice of
+algorithms and underlying implementation can support parameters of this length.
+
+The shared secret `ss_pq` must satisfy the entropy requirement in
+{{Section 9.5 of !I-D.ietf-hpke-hpke}}.
+
 Implementations should verify `len(enc) == Nenc + Nenc_pq` and reject
 encapsulations of any other length. A fresh `(ss_pq, enc_pq)` pair should be
 generated for each encapsulation; reuse of a prior `enc_pq` is prohibited. The
-`suite_id` in the HPKE key schedule reflects only the classical ciphersuite
-`(KEM_ID, KDF_ID, AEAD_ID)`; the PQ-KEM algorithm identity should be conveyed
-via application-layer framing or the `info` parameter when multiple PQ-KEM
-algorithms are supported.
+`suite_id` in the HPKE key schedule reflects only the ciphersuite
+`(AKEM_ID, KDF_ID, AEAD_ID)`; the PQ-KEM algorithm identity should be conveyed
+via application-layer framing when multiple PQ-KEM algorithms are supported.
+
+Note that {{Alwen2023}}
+describes a related hybrid construction in which a PQ *AKEM* (rather than a
+plain KEM) is used to generate the PSK, which would additionally provide
+post-quantum sender authentication; that stronger construction is outside the
+scope of this document.
+
+## Motivation (Informative) {#sec-motivation}
+
+Downstream application developers are in a bind: though they may be aware of advice to
+implement quantum-safe encryption on an accelerated timeline, they may encounter rapidly-
+evolving guidance on best practices, a lack of direct parity with classical constructions,
+and a releative paucity of stable APIs suitable for non-cryptographers {{PQCodePkgs}}.
+
+Non-cryptographers looking to offer classical/quantum-safe (hybrid) encryption in their
+own applications can look to early-stage implementations of
+{{?I-D.draft-connolly-cfrg-xwing-kem-10}}, or may refer to now-expired
+{{!I-D.ounsworth-cfrg-kem-combiners}}, but will need to manage their own implementation.
+Further, the guidance on post-quantum signature schemes is still under active development,
+and if libraries are available, they come with strong caveats about changing APIs and general
+maturity.
+
+Although DH-based authentication is not future-forward, it remains in widespread use.
+Further, although the property of hybrid encryption with classical authentication is not as
+straightforward to communicate as an unauthenticated hybrid construct, protocols such as
+Noise IK, as used in {{Wireguard2020}}, indicate their usage.
+Simple APIs that allow application developers to deploy quantum-resistent encryption as
+a transitional measure without deprecating the classical authentication properties of
+their application provides a path towards quantum readiness.
 
 # Security Considerations {#sec-security}
 
