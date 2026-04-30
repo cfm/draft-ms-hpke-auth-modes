@@ -312,13 +312,9 @@ Whether
 this property holds formally for a specific `CombineSecrets` variant depends on
 that variant's security analysis, which is outside the scope of this document.
 
-A quantum adversary that breaks the
-DH assumption can also forge sender authentication, so post-quantum sender
-authentication would require an additional PQ signature. Note that {{Alwen2023}}
-describes a related hybrid construction in which a PQ *AKEM* (rather than a
-plain KEM) is used to generate the PSK, which would additionally provide
-post-quantum sender authentication; that stronger construction is outside the
-scope of this document.
+**Authentication.** This mode retains the implicit sender
+authentication properties of DHAKEM described in {{?RFC9180}}.
+A quantum adversary with access to the PSK can also forge authenticated messages.
 
 **PSK freshness.** The PSK `psk` MUST satisfy the
 entropy requirement in {{Section 9.5 of !I-D.ietf-hpke-hpke}} (32 bytes of
@@ -364,29 +360,24 @@ the resulting shared secret `ss_pq` as "PSK", and a static identifier as the
 PSK identifier. The receiver's PQ public key `pkR_pq` is included in `info` to
 bind it to the key schedule.
 
-The shared secret `ss_pq` must satisfy the entropy requirement in
-{{Section 9.5 of !I-D.ietf-hpke-hpke}}.
-
-As with {{sec-hybrid}}, only classical sender authentication is provided.
-
 An example construction is provided below, with reference to the following terms:
 
 - **PQ-KEM:** a post-quantum KEM, e.g., ML-KEM {{FIPS203}} or an
   algorithm from {{?I-D.ietf-hpke-pq}}.
-- `PQKEM.Encap(pkR_pq)`: PQ-KEM encapsulation; returns `(ss_pq, enc_pq)`.
+- `PQKEM.Encap(pkR_pq)`: PQ-KEM encapsulation; returns `(enc_pq, ss_pq)`.
 - `PQKEM.Decap(enc_pq, skR_pq)`: PQ-KEM decapsulation; returns `ss_pq`.
 - `Nenc_pq`: the fixed ciphertext length of the chosen PQ-KEM, in bytes.
 
 ~~~
 def HybridSetupS(pkR, pkR_pq, skS, info):
-  ss_pq, enc_pq = PQKEM.Encap(pkR_pq)
-  enc_dh, ctx = SetupAuthPSKS(pkR, concat(info, pkR_pq), ss_pq, enc_pq, skS)
+  enc_pq, ss_pq = PQKEM.Encap(pkR_pq)
+  enc_dh, ctx = SetupAuthPSKS(pkR, concat(info, enc_pq), ss_pq, enc_pq, skS)
   return concat(enc_dh, enc_pq), ctx
 
 def HybridSetupR(enc, skR, skR_pq, pkR_pq, pkS, info):
   enc_dh, enc_pq = enc[:Nenc], enc[Nenc:]
   ss_pq = PQKEM.Decap(enc_pq, skR_pq)
-  return SetupAuthPSKR(enc_dh, skR, concat(info, pkR_pq), ss_pq, enc_pq, pkS)
+  return SetupAuthPSKR(enc_dh, skR, concat(info, enc_pq), ss_pq, enc_pq, pkS)
 ~~~
 
 Implementations should verify `len(enc) == Nenc + Nenc_pq` and reject
