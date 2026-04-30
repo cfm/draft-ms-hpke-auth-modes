@@ -1,0 +1,1775 @@
+<!DOCTYPE html>
+<html lang="en" class="Internet-Draft">
+<head>
+<meta charset="utf-8">
+<meta content="Common,Latin" name="scripts">
+<meta content="initial-scale=1.0" name="viewport">
+<title>Authenticated Modes for HPKE</title>
+<meta content="Cory Francis Myers" name="author">
+<meta content="Rowen Shane" name="author">
+<meta content="Giulio Berra" name="author">
+<meta content="
+       The standards-track   supersedes the informational
+ , omitting its authenticated modes  mode_auth  and  mode_auth_psk .
+This document restores  mode_auth_psk  mode as a strict extension, and illustrates
+how the restored mode can be used with a post-quantum shared secret as the PSK
+by application developers seeking to achieve hybrid PQ/T confidentiality while
+transitioning to quantum-safe encryption, without deprecating the implicit
+authentication properties of DHAKEM on which many applications still rely. 
+       This extension requires only the
+addition of  AuthEncap() / AuthDecap()  to the DHKEM, the definition of four
+setup functions, and a change in  VerifyPSKInputs() .  The extension does not
+alter the externally observable behavior of the existing HPKE modes standardized
+in  .
+Although  AuthEncap() / AuthDecap()  reintroduce the functionality of  mode_auth ,
+the mode itself is not restored due to its inability to provide quantum safety. 
+       The transitional nature of the AuthPSK construction and its security properties
+are discussed.
+Finally, the document illustrates how the restored mode can be used to provide
+ready-made KEM combiner-like functionality ( )
+without requiring downstream API users to manage their own encryption context.
+The use of this construction as a transitional step towards quantum readiness
+motivates this extension. 
+    " name="description">
+<meta content="xml2rfc 3.33.0" name="generator">
+<meta content="AKEM" name="keyword">
+<meta content="authenticated KEM" name="keyword">
+<meta content="DHKEM" name="keyword">
+<meta content="HPKE" name="keyword">
+<meta content="KEM combiner" name="keyword">
+<meta content="draft-ms-hpke-auth-modes-latest" name="ietf.draft">
+<!-- Generator version information:
+  xml2rfc 3.33.0
+    Python 3.12.13
+    ConfigArgParse 1.7
+    google-i18n-address 3.1.1
+    intervaltree 3.2.1
+    Jinja2 3.1.6
+    lxml 6.0.2
+    platformdirs 4.9.6
+    pycountry 24.6.1
+    PyYAML 6.0.3
+    requests 2.32.5
+    wcwidth 0.6.0
+-->
+<link href="draft-ms-hpke-auth-modes.xml" rel="alternate" type="application/rfc+xml">
+<link href="#copyright" rel="license">
+<style type="text/css">@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-cyrillic.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-cyrillic.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: local('Lora SemiBold'), local('Lora-SemiBold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-semibold-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Oxygen Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Oxygen Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+}
+
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-greek.woff2') format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-greek.woff2') format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  color-scheme: light dark;
+  --background-color: #fff;
+  --text-color: #222;
+  --title-color: #191919;
+  --link-color: #2a6496;
+  --highlight-color: #f9f9f9;
+  --line-color: #eee;
+  --pilcrow-weak: #ddd;
+  --pilcrow-strong: #bbb;
+  --small-font-size: 14.5px;
+  --font-mono: 'Oxygen Mono', monospace;
+  --font-title: "Sofia Sans Semi Condensed", sans-serif;
+  scrollbar-color: #bbb #eee;
+}
+body {
+  max-width: 600px;
+  margin: 75px auto;
+  padding: 0 5px;
+  color: var(--text-color);
+  background-color: var(--background-color);
+  font: 16px/22px "Lora", serif;
+  scroll-behavior: smooth;
+}
+
+.ears {
+  display: none;
+}
+
+/* headings */
+section {
+  clear: both;
+}
+.section-number {
+  padding-right: 0.5em;
+}
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-title);
+  font-weight: 680;
+  margin: 0.8em 0 0.3em;
+  font-size-adjust: 0.5;
+  color: var(--title-color);
+}
+h1#title {
+  font-size: 32px;
+  line-height: 40px;
+  clear: both;
+}
+h1#title, h1#rfcnum {
+  margin: 1.5em 0 0.2em;
+}
+h1#rfcnum + h1#title {
+  margin: 0.2em 0;
+}
+
+h1, h2, h3 {
+  font-size: 22px;
+  line-height: 27px;
+}
+h4, h5, h6 {
+  font-size: 20px;
+  line-height: 24px;
+}
+
+/* general structure */
+.author {
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+#abstract+p {
+  font-size: 18px;
+  line-height: 24px;
+}
+#abstract+p code, #abstract+p samp, #abstract+p tt {
+  font-size: 16px;
+  line-height: 0;
+}
+
+p {
+  padding: 0;
+  margin: 0.5em 0;
+  text-align: left;
+}
+div {
+  margin: 0;
+}
+.alignRight.art-text {
+  background-color: var(--highlight-color);
+  border: 1px solid var(--line-color);
+  border-radius: 3px;
+  padding: 0.5em 1em 0;
+  margin-bottom: 0.5em;
+}
+.alignRight.art-text pre {
+  padding: 0;
+  width: auto;
+}
+.alignRight {
+  margin: 1em 0;
+}
+.alignRight > *:first-child {
+  border: none;
+  margin: 0;
+  float: right;
+  clear: both;
+}
+.alignRight > *:nth-child(2) {
+  clear: both;
+  display: block;
+  border: none;
+}
+svg {
+  display: block;
+}
+/* font-family isn't space-separated, but =~ will have to do */
+svg[font-family~="monospace" i], svg [font-family~="monospace" i] {
+  font-family: var(--font-mono);
+}
+.alignCenter.art-text {
+  background-color: var(--highlight-color);
+  border: 1px solid var(--line-color);
+  border-radius: 3px;
+  padding: 0.5em 1em 0;
+  margin-bottom: 0.5em;
+}
+.alignCenter.art-text pre {
+  padding: 0;
+  width: auto;
+}
+.alignCenter {
+  margin: 1em 0;
+}
+.alignCenter > *:first-child {
+  border: none;
+  /* this isn't optimal, but it's an existence proof.  PrinceXML doesn't
+     support flexbox yet.
+  */
+  display: table;
+  margin: 0 auto;
+}
+
+/* lists */
+ol, ul {
+  padding: 0;
+  margin: 0 0 0.5em 2em;
+  & :is(ol, ul) {
+    margin-left: 1em;
+  }
+}
+li {
+  margin: 0 0 0.25em 0;
+}
+ul.empty, .ulEmpty {
+  list-style-type: none;
+  & li {
+    margin-top: 0.5em;
+  }
+}
+:is(ul, ol).compact, .ulCompact, .olCompact {
+  margin: 0 0 0 2em;
+  & li {
+    margin: 0;
+    & :first-child { margin-top: 0; }
+    & :last-child { margin-bottom: 0; }
+  }
+}
+
+/* definition lists */
+dl {
+  clear: left;
+  --indent: 3ch;
+  /* --indent: attr(indent ch); not supported in any browser, but we can dream */
+  &.olPercent {
+    --indent: 5ch;
+    & > dt {
+      min-width: calc(var(--indent) - 2ch);
+    }
+  }
+  &.olPercent > dt {
+    float: none;
+  }
+
+  dl > dd > & {
+    margin-top: 0.5em;
+    margin-bottom: 0;
+  }
+}
+dl:not(.dlNewline) > dt {
+  float: left;
+  margin-right: 2ch;
+  min-width: 8ch;
+}
+dl > dd {
+  margin-bottom: .8em;
+  margin-left: var(--indent) !important; /* stupid element overrides */
+  min-height: 2ex;
+}
+:is(dl.compact, .dlCompact) > dd {
+  margin-bottom: 0;
+  & > :is(:first-child, .break:first-child + *) {
+    margin-top: 0;
+  }
+  & > :is(:last-child) {
+    margin-bottom: 0;
+  }
+}
+:is(dd, span).break {
+  display: none;
+}
+
+/* links */
+a, a[href].selfRef:hover {
+  text-decoration: none;
+}
+a[href] {
+  color: var(--link-color);
+}
+a[href].selfRef, .iref + a[href].internal {
+  color: var(--text-color);
+}
+a[href]:hover {
+  text-decoration: underline;
+}
+a[href].selfRef:hover {
+  background-color: var(--highlight-color);
+}
+a.xref:is(.cite, .auto), :is(#status-of-memo, #copyright) a {
+  white-space: nowrap;
+}
+
+/* Figures */
+tt, code, pre {
+  background-color: var(--highlight-color);
+  font: 14px/22px var(--font-mono);
+}
+tt, code {
+  /* changing the font for inline elements leads to different ascender
+     and descender heights; as we want to retain baseline alignment,
+     remove leading to avoid altering the final height of lines
+     note: this fails if these blocks take an entire line,
+     a different solution would be great */
+  line-height: 0;
+}
+:is(h1, h2, h3, h4, h5, h6) :is(tt, code) {
+  font-size: 84%;
+}
+pre {
+  border: 1px solid var(--line-color);
+  font-size: 13.5px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  margin: 5px;
+  padding: 5px;
+}
+img {
+  max-width: 100%;
+}
+figure {
+  margin: 0.5em 0;
+  padding: 0;
+}
+figure blockquote {
+  margin: 0.8em 0.4em 0.4em;
+}
+figcaption, caption {
+  font-style: italic;
+  margin: 0.5em 1.5em;
+  text-align: left;
+  caption-side: bottom;
+}
+@media screen {
+  /* Auto-collapse boilerplate. */
+  :is(#status-of-memo, #copyright) p {
+    margin: -2px 0;
+    max-height: 0;
+    transition: max-height 2s ease, margin 0.5s ease 0.5s;
+    overflow: hidden;
+  }
+  :is(#status-of-memo, #copyright):hover p,
+  :is(#status-of-memo, #copyright) h2:target ~ p {
+    margin: 0.5em 0;
+    max-height: 500px;
+    overflow: auto;
+  }
+  pre, svg {
+    display: inline-block;
+    /* In the horizontal direction, sometimes people make over-sized figures.
+       Scrollbars for those is therefore necessary: auto adds them as necessary..
+       In the vertical direction, the line-height can combine with the font
+       asender/descender height to produce scrollbars: hidden avoids that. */
+    overflow: auto hidden;
+  }
+  pre {
+    max-width: 100%;
+    width: calc(100% - 22px - 1em);
+  }
+  svg {
+    max-width: calc(100% - 22px - 1em);
+  }
+  figure pre {
+    display: block;
+    width: calc(100% - 25px);
+  }
+  :is(pre, svg) + .pilcrow {
+    display: inline-block;
+    vertical-align: text-bottom;
+    padding-bottom: 8px;
+  }
+}
+
+/* aside, blockquote */
+aside, blockquote {
+  margin-left: 0;
+  padding: 0 2em;
+  font-style: italic;
+}
+blockquote {
+  margin: 1em 0;
+  border-left: 2px var(--pilcrow-strong) solid;
+}
+cite {
+  display: block;
+  text-align: right;
+  font-style: italic;
+}
+
+/* tables */
+table {
+  width: auto;
+  max-width: 100%;
+  margin: 0 0 1em;
+  border-collapse: collapse;
+}
+table.right {
+  margin-left: auto;
+}
+table.center {
+  margin-left: auto;
+  margin-right: auto;
+}
+table.left {
+  margin-right: auto;
+}
+table .text-left {
+  text-align: left;
+}
+table .text-center {
+  text-align: center;
+}
+table .text-right {
+  text-align: right;
+}
+
+thead, tbody {
+  border: 1px solid var(--line-color);
+}
+th, td {
+  text-align: left;
+  vertical-align: top;
+  padding: 5px 10px;
+}
+th {
+  background-color: var(--line-color);
+}
+:is(tr:nth-child(2n), thead+tbody > tr:nth-child(2n+1)) > td {
+  background-color: var(--background-color);
+}
+:is(tr:nth-child(2n+1), thead+tbody > tr:nth-child(2n)) > td {
+  background-color: var(--highlight-color);
+}
+table caption {
+  margin: 0;
+  padding: 3px 0 3px 1em;
+}
+table p {
+  margin: 0;
+}
+
+/* pilcrow */
+a.pilcrow {
+  margin-left: 3px;
+  opacity: 0.2;
+  user-select: none;
+  &[href] {
+    color: var(--pilcrow-weak);
+    &:hover { text-decoration: none; }
+  }
+}
+@media not print {
+  :hover > a.pilcrow, a.pilcrow:focus {
+    opacity: 1;
+  }
+  a.pilcrow[href]:hover {
+    color: var(--pilcrow-strong);
+    background-color: transparent;
+  }
+}
+@media print {
+  a.pilcrow {
+    display: none;
+  }
+}
+
+/* misc */
+hr {
+  border: 0;
+  border-top: 1px solid var(--line-color);
+}
+.bcp14 {
+  font-variant: small-caps;
+  font-weight: 600;
+  font-size: var(--small-font-size);
+}
+.role {
+  font-variant: all-small-caps;
+}
+sub, sup {
+  line-height: 1;
+  font-size: 80%;
+}
+
+/* info block */
+#identifiers {
+  margin: 0;
+  font-size: var(--small-font-size);
+  line-height: 18px;
+  --identifier-width: 15ch;
+  & dt {
+    width: var(--identifier-width);
+    min-width: var(--identifier-width);
+    clear: left;
+    float: left;
+    text-align: right;
+    margin-right: 1ch;
+  }
+  & dd {
+    margin: 0;
+    margin-left: calc(1em + var(--identifier-width)) !important;
+    min-width: 5em;
+  }
+  & .authors {
+    & .author {
+      display: inline-block;
+      margin-right: 1.5em;
+    }
+    & .org {
+      font-style: italic;
+    }
+  }
+}
+
+/* The prepared/rendered info at the very bottom of the page */
+.docInfo {
+  color: #999;
+  font-size: 0.9em;
+  font-style: italic;
+  margin-top: 2em;
+}
+.docInfo .prepared {
+  float: right;
+}
+
+/* table of contents */
+#toc {
+  padding: 0.75em 0 2em 0;
+  margin-bottom: 1em;
+
+  & nav {
+    & ul {
+      margin: 0 0.5em 0 0;
+      padding: 0;
+      list-style: none;
+    }
+    & li {
+      line-height: 1.3em;
+      margin: 2px 0;
+      padding-left: 1.2em;
+      text-indent: -1.2em;
+    }
+  }
+  & a.xref {
+    white-space: normal;
+  }
+}
+
+.references {
+  & > dt {
+    text-align: right;
+    font-weight: bold;
+    min-width: 10ch;
+    margin-right: 1.5ch;
+    &:target::before {
+      content: "⇒";
+      margin: 0 10px 0 -25px;
+    }
+  }
+  & > dd {
+    margin-left: 12ch !important;
+    overflow: visible;
+    & .refInstance {
+      margin-bottom: 0.8em;
+    }
+    & .ascii {
+      margin-bottom: 0.25em;
+    }
+  }
+}
+
+#rfc\.index\.index + ul {
+  margin-left: 0;
+}
+
+/* authors */
+address.vcard {
+  font-style: normal;
+  max-width: 20em;
+  margin: 1em auto 1em 0;
+
+  & .nameRole {
+    font-weight: 700;
+    margin-left: 0;
+  }
+  & .label {
+    margin: 0.5em 0;
+  }
+  & .type {
+    display: none;
+  }
+  & .alternative-contact {
+    margin: 0.5em 0 0.25em 0;
+  }
+  & .non-ascii {
+    margin: 0 0 0 2em;
+  }
+  & div.left {
+    text-align: left;
+  }
+  & div.right {
+    text-align: right;
+  }
+}
+
+hr.addr {
+  border-top: 1px dashed;
+  margin: 0;
+  color: #ddd;
+  max-width: calc(100% - 16px);
+}
+@media (min-width: 500px) {
+  #authors-addresses > section {
+    column-count: 2;
+    column-gap: 20px;
+  }
+  #authors-addresses > section > h2 {
+    column-span: all;
+  }
+  /* hack for break-inside: avoid-column */
+  #authors-addresses address {
+    display: inline-block;
+    break-inside: avoid-column;
+  }
+}
+
+/* Comments */
+.rfcEditorRemove p:first-of-type {
+  font-style: italic;
+}
+.cref {
+  background-color: rgba(249, 232, 105, 0.3);
+  padding: 2px 4px;
+}
+.crefSource {
+  font-style: italic;
+}
+
+@media screen {
+  #toc nav {
+    font-family: var(--font-title);
+    font-weight: 360;
+    & > ul { margin-bottom: 2em; }
+    & ul {
+      margin: 0 0 0 4px;
+      & :is(p, li) {
+        margin: 2px 0;
+      }
+    }
+  }
+  #toc a.toplink {
+    float: right;
+  }
+}
+@media not screen {
+  #toc a.toplink {
+    display: none;
+  }
+}
+
+
+/* TOC layout for smaller screens */
+@media screen and (max-width: 929px) {
+  #toc {
+    position: fixed;
+    z-index: 2;
+    top: 0;
+    right: 0;
+    padding: 1px 0 0 0;
+    margin: 0;
+    border-bottom: 1px solid #ccc;
+    opacity: 0.6;
+  }
+  #toc h2 {
+    margin: 0;
+    padding: 2px 0 2px 6px;
+    padding-right: 1em;
+    font-size: 18px;
+    line-height: 24px;
+    min-width: 190px;
+    text-align: right;
+    background-color: #444;
+    color: white;
+    cursor: pointer;
+    &::before { /* css hamburger */
+      float: right;
+      position: relative;
+      width: 1em;
+      height: 1px;
+      left: -164px;
+      margin: 8px 0 0 0;
+      background: white none repeat scroll 0 0;
+      box-shadow: 0 4px 0 0 white, 0 8px 0 0 white;
+      content: "";
+    }
+  }
+  #toc nav {
+    display: none;
+    background-color: var(--background-color);
+    padding: 0.5em 1em 1em;
+    overflow: auto;
+    overscroll-behavior: contain;
+    height: calc(100vh - 48px);
+    border-left: 1px solid #ddd;
+  }
+  #toc.active {
+    opacity: 1;
+    & nav { display: block; }
+  }
+  /* Make the collapsed ToC header render white on gray also when it's a link */
+  #toc h2 a,
+  #toc h2 a:is(:link, :focus, :hover),
+  #toc a.toplink,
+  #toc a.toplink:hover {
+    color: white;
+    background-color: #444;
+    text-decoration: none;
+  }
+  #toc a.toplink {
+    margin: 2px 0.5em 0;
+  }
+}
+
+/* TOC layout for wide screens */
+@media screen and (min-width: 930px) {
+  body {
+    padding-right: 360px;
+    padding-right: calc(min(180px + 20%, 500px));
+  }
+  #toc {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    right: calc(50vw - 480px);
+    width: 312px;
+    margin: 0;
+    padding: 0;
+    z-index: 1;
+  }
+  #toc h2 {
+    margin: 0;
+    padding: 0.25em 1em 1em 0;
+  }
+  #toc nav {
+    display: block;
+    height: calc(90vh - 84px);
+    bottom: 0;
+    padding: 0.5em 0 2em;
+    overflow: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+  }
+  img { /* future proofing */
+    max-width: 100%;
+    height: auto;
+  }
+  #toc a.toplink {
+    margin: 8px 0.5em 0;
+  }
+}
+
+/* pagination */
+@media print {
+  body {
+    width: 100%;
+  }
+  p {
+    orphans: 3;
+    widows: 3;
+  }
+  #n-copyright-notice {
+    border-bottom: none;
+  }
+  #toc, #n-introduction {
+    page-break-before: always;
+  }
+  #toc {
+    border-top: none;
+    padding-top: 0;
+  }
+  figure, pre, .vcard {
+    page-break-inside: avoid;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+  }
+  :is(h2, h3, h4, h5, h6)+*, dd {
+    page-break-before: avoid;
+  }
+  pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 10pt;
+  }
+  table {
+    border: 1px solid #ddd;
+  }
+  td {
+    border-top: 1px solid #ddd;
+  }
+}
+
+@page :first {
+  padding-top: 0;
+  @top-left {
+    content: normal;
+    border: none;
+  }
+  @top-center {
+    content: normal;
+    border: none;
+  }
+  @top-right {
+    content: normal;
+    border: none;
+  }
+}
+
+@page {
+  size: A4;
+  margin-bottom: 45mm;
+  padding-top: 20px;
+}
+
+/* Dark mode. */
+@media (prefers-color-scheme: dark) {
+:root {
+  --background-color: #121212;
+  --text-color: #f0f0f0;
+  --title-color: #fff;
+  --link-color: #4da4f0;
+  --highlight-color: #282828;
+  --line-color: #444;
+  --pilcrow-weak: #444;
+  --pilcrow-strong: #666;
+  scrollbar-color: #777 #333;
+}
+}
+
+/* SVG Trick: a prefix match works because only black and white are allowed */
+svg :is([stroke="black"], [stroke^="#000"]) {
+  stroke: var(--text-color);
+}
+svg :is([stroke="white"], [stroke^="#fff"]) {
+  stroke: var(--background-color);
+}
+svg :is([fill="black"], [fill^="#000"], :not([fill])) {
+  fill: var(--text-color);
+}
+svg :is([fill="white"], [fill^="#fff"]) {
+  fill: var(--background-color);
+}
+</style>
+
+</head>
+<body class="xml2rfc">
+<table class="ears">
+<thead><tr>
+<td class="left">Internet-Draft</td>
+<td class="center">HPKE Authenticated Modes</td>
+<td class="right">April 2026</td>
+</tr></thead>
+<tfoot><tr>
+<td class="left">Myers, et al.</td>
+<td class="center">Expires 1 November 2026</td>
+<td class="right">[Page]</td>
+</tr></tfoot>
+</table>
+<div id="external-metadata" class="document-information"></div>
+<div id="internal-metadata" class="document-information">
+<dl id="identifiers">
+<dt class="label-workgroup">Workgroup:</dt>
+<dd class="workgroup">Network Working Group</dd>
+<dt class="label-internet-draft">Internet-Draft:</dt>
+<dd class="internet-draft">draft-ms-hpke-auth-modes-latest</dd>
+<dt class="label-published">Published:</dt>
+<dd class="published">
+<time datetime="2026-04-30" class="published">30 April 2026</time>
+    </dd>
+<dt class="label-intended-status">Intended Status:</dt>
+<dd class="intended-status">Standards Track</dd>
+<dt class="label-expires">Expires:</dt>
+<dd class="expires"><time datetime="2026-11-01">1 November 2026</time></dd>
+<dt class="label-authors">Authors:</dt>
+<dd class="authors">
+<div class="author">
+      <div class="author-name">C. F. Myers, <span class="editor">Ed.</span>
+</div>
+<div class="org">Freedom of the Press Foundation</div>
+</div>
+<div class="author">
+      <div class="author-name">R. Shane, <span class="editor">Ed.</span>
+</div>
+<div class="org">Freedom of the Press Foundation</div>
+</div>
+<div class="author">
+      <div class="author-name">G. Berra, <span class="editor">Ed.</span>
+</div>
+<div class="org">Freedom of the Press Foundation</div>
+</div>
+</dd>
+</dl>
+</div>
+<h1 id="title">Authenticated Modes for HPKE</h1>
+<section id="section-abstract">
+      <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
+<p id="section-abstract-1">The standards-track <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span> supersedes the informational
+<span>[<a href="#RFC9180" class="cite xref">RFC9180</a>]</span>, omitting its authenticated modes <code>mode_auth</code> and <code>mode_auth_psk</code>.
+This document restores <code>mode_auth_psk</code> mode as a strict extension, and illustrates
+how the restored mode can be used with a post-quantum shared secret as the PSK
+by application developers seeking to achieve hybrid PQ/T confidentiality while
+transitioning to quantum-safe encryption, without deprecating the implicit
+authentication properties of DHAKEM on which many applications still rely.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+<p id="section-abstract-2">This extension requires only the
+addition of <code>AuthEncap()</code>/<code>AuthDecap()</code> to the DHKEM, the definition of four
+setup functions, and a change in <code>VerifyPSKInputs()</code>.  The extension does not
+alter the externally observable behavior of the existing HPKE modes standardized
+in <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span>.
+Although <code>AuthEncap()</code>/<code>AuthDecap()</code> reintroduce the functionality of <code>mode_auth</code>,
+the mode itself is not restored due to its inability to provide quantum safety.<a href="#section-abstract-2" class="pilcrow">¶</a></p>
+<p id="section-abstract-3">The transitional nature of the AuthPSK construction and its security properties
+are discussed.
+Finally, the document illustrates how the restored mode can be used to provide
+ready-made KEM combiner-like functionality (<span>[<a href="#I-D.ounsworth-cfrg-kem-combiners" class="cite xref">I-D.ounsworth-cfrg-kem-combiners</a>]</span>)
+without requiring downstream API users to manage their own encryption context.
+The use of this construction as a transitional step towards quantum readiness
+motivates this extension.<a href="#section-abstract-3" class="pilcrow">¶</a></p>
+</section>
+<section class="note rfcEditorRemove" id="section-note.1">
+      <h2 id="name-about-this-document">
+<a href="#name-about-this-document" class="section-name selfRef">About This Document</a>
+      </h2>
+<p id="section-note.1-1">This note is to be removed before publishing as an RFC.<a href="#section-note.1-1" class="pilcrow">¶</a></p>
+<p id="section-note.1-2">
+        Status information for this document may be found at <span><a href="https://datatracker.ietf.org/doc/draft-ms-hpke-auth-modes/">https://datatracker.ietf.org/doc/draft-ms-hpke-auth-modes/</a></span>.<a href="#section-note.1-2" class="pilcrow">¶</a></p>
+<p id="section-note.1-3">Source for this draft and an issue tracker can be found at
+        <span><a href="https://github.com/cfm/draft-ms-hpke-auth-modes">https://github.com/cfm/draft-ms-hpke-auth-modes</a></span>.<a href="#section-note.1-3" class="pilcrow">¶</a></p>
+</section>
+<div id="status-of-memo">
+<section id="section-boilerplate.1">
+        <h2 id="name-status-of-this-memo">
+<a href="#name-status-of-this-memo" class="section-name selfRef">Status of This Memo</a>
+        </h2>
+<p id="section-boilerplate.1-1">
+        This Internet-Draft is submitted in full conformance with the
+        provisions of BCP 78 and BCP 79.<a href="#section-boilerplate.1-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-2">
+        Internet-Drafts are working documents of the Internet Engineering Task
+        Force (IETF). Note that other groups may also distribute working
+        documents as Internet-Drafts. The list of current Internet-Drafts is
+        at <span><a href="https://datatracker.ietf.org/drafts/current/">https://datatracker.ietf.org/drafts/current/</a></span>.<a href="#section-boilerplate.1-2" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-3">
+        Internet-Drafts are draft documents valid for a maximum of six months
+        and may be updated, replaced, or obsoleted by other documents at any
+        time. It is inappropriate to use Internet-Drafts as reference
+        material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-4">
+        This Internet-Draft will expire on 1 November 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="copyright">
+<section id="section-boilerplate.2">
+        <h2 id="name-copyright-notice">
+<a href="#name-copyright-notice" class="section-name selfRef">Copyright Notice</a>
+        </h2>
+<p id="section-boilerplate.2-1">
+            Copyright (c) 2026 IETF Trust and the persons identified as the
+            document authors. All rights reserved.<a href="#section-boilerplate.2-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.2-2">
+            This document is subject to BCP 78 and the IETF Trust's Legal
+            Provisions Relating to IETF Documents
+            (<span><a href="https://trustee.ietf.org/license-info">https://trustee.ietf.org/license-info</a></span>) in effect on the date of
+            publication of this document. Please review these documents
+            carefully, as they describe your rights and restrictions with
+            respect to this document. Code Components extracted from this
+            document must include Revised BSD License text as described in
+            Section 4.e of the Trust Legal Provisions and are provided without
+            warranty as described in the Revised BSD License.<a href="#section-boilerplate.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="toc">
+<section id="section-toc.1">
+        <a href="#" onclick="scroll(0,0)" class="toplink">▲</a><h2 id="name-table-of-contents">
+<a href="#name-table-of-contents" class="section-name selfRef">Table of Contents</a>
+        </h2>
+<nav class="toc"><ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1">
+            <p id="section-toc.1-1.1.1" class="keepWithNext"><a href="#section-1" class="auto internal xref">1</a>.  <a href="#name-introduction" class="internal xref">Introduction</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2">
+            <p id="section-toc.1-1.2.1" class="keepWithNext"><a href="#section-2" class="auto internal xref">2</a>.  <a href="#name-conventions-and-definitions" class="internal xref">Conventions and Definitions</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3">
+            <p id="section-toc.1-1.3.1"><a href="#section-3" class="auto internal xref">3</a>.  <a href="#name-authenticated-pre-shared-ke" class="internal xref">Authenticated Pre-Shared Key Mode Extension to I-D.ietf-hpke-hpke</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.1">
+                <p id="section-toc.1-1.3.2.1.1" class="keepWithNext"><a href="#section-3.1" class="auto internal xref">3.1</a>.  <a href="#name-mode-identifiers" class="internal xref">Mode Identifiers</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2">
+                <p id="section-toc.1-1.3.2.2.1"><a href="#section-3.2" class="auto internal xref">3.2</a>.  <a href="#name-exclusion-of-0x02-mode_auth" class="internal xref">Exclusion of 0x02 <code>mode_auth</code> from Mode Identifiers</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.3">
+                <p id="section-toc.1-1.3.2.3.1"><a href="#section-3.3" class="auto internal xref">3.3</a>.  <a href="#name-dhkem-extension-authencap-a" class="internal xref">DHKEM Extension: <code>AuthEncap()</code> and <code>AuthDecap()</code></a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.4">
+                <p id="section-toc.1-1.3.2.4.1"><a href="#section-3.4" class="auto internal xref">3.4</a>.  <a href="#name-verifypskinputs" class="internal xref"><code>VerifyPSKInputs</code></a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.5">
+                <p id="section-toc.1-1.3.2.5.1"><a href="#section-3.5" class="auto internal xref">3.5</a>.  <a href="#name-setup-functions" class="internal xref">Setup Functions</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.6">
+                <p id="section-toc.1-1.3.2.6.1"><a href="#section-3.6" class="auto internal xref">3.6</a>.  <a href="#name-input-validation-and-error-" class="internal xref">Input Validation and Error Handling</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.7">
+                <p id="section-toc.1-1.3.2.7.1"><a href="#section-3.7" class="auto internal xref">3.7</a>.  <a href="#name-dhakem-with-psk" class="internal xref">DHAKEM with PSK</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.7.2.1">
+                    <p id="section-toc.1-1.3.2.7.2.1.1"><a href="#section-3.7.1" class="auto internal xref">3.7.1</a>.  <a href="#name-pq-t-hybrid-construction" class="internal xref">PQ/T Hybrid Construction</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.7.2.2">
+                    <p id="section-toc.1-1.3.2.7.2.2.1"><a href="#section-3.7.2" class="auto internal xref">3.7.2</a>.  <a href="#name-akem-pq-kem-combiner-inform" class="internal xref">AKEM/PQ KEM "Combiner" (Informative)</a></p>
+</li>
+                </ul>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.8">
+                <p id="section-toc.1-1.3.2.8.1"><a href="#section-3.8" class="auto internal xref">3.8</a>.  <a href="#name-motivation-informative" class="internal xref">Motivation (Informative)</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4">
+            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
+            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6">
+            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-references" class="internal xref">References</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.1">
+                <p id="section-toc.1-1.6.2.1.1"><a href="#section-6.1" class="auto internal xref">6.1</a>.  <a href="#name-normative-references" class="internal xref">Normative References</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.2">
+                <p id="section-toc.1-1.6.2.2.1"><a href="#section-6.2" class="auto internal xref">6.2</a>.  <a href="#name-informative-references" class="internal xref">Informative References</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7">
+            <p id="section-toc.1-1.7.1"><a href="#appendix-A" class="auto internal xref"></a><a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8">
+            <p id="section-toc.1-1.8.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-authors-addresses" class="internal xref">Authors' Addresses</a></p>
+</li>
+        </ul>
+</nav>
+</section>
+</div>
+<div id="introduction">
+<section id="section-1">
+      <h2 id="name-introduction">
+<a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
+      </h2>
+<p id="section-1-1"><span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span> is the standards-track successor to the informational
+<span>[<a href="#RFC9180" class="cite xref">RFC9180</a>]</span> and omits the authenticated modes <code>mode_auth</code> and <code>mode_auth_psk</code>
+to simplify the standard.
+However, some applications make use of the type of implicit sender authentication
+those modes provide.<a href="#section-1-1" class="pilcrow">¶</a></p>
+<p id="section-1-2">The normative portion of this document is small.  It restores
+<code>mode_auth_psk</code> as a strict extension to <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span>.
+This requires <code>AuthEncap()</code>/<code>AuthDecap()</code> from the DHKEM construction in
+<span>[<a href="#RFC9180" class="cite xref">RFC9180</a>]</span>, and a modified <code>VerifyPSKInputs()</code>. The externally observable
+behavior of existing HPKE modes is unchanged.
+<code>AuthEncap()</code> computes a static-static DH value <code>DH(skS, pkR)</code> alongside the
+ephemeral-static value and mixes both into the key derivation, binding the
+output to the sender's key pair.<a href="#section-1-2" class="pilcrow">¶</a></p>
+<p id="section-1-3">Although the functionality of <code>mode_auth</code> is re-introduced, the mode identifer
+itself, which relies solely on DHKEM, is not restored due to its inability to
+provide quantum-safe encryption. Instead, it is instead treated as a building
+block to <code>mode_auth_psk</code>, as seen in <a href="#sec-dhakem" class="auto internal xref">Section 3.7</a>.<a href="#section-1-3" class="pilcrow">¶</a></p>
+<p id="section-1-4"><a href="#sec-authencap" class="auto internal xref">Section 3.3</a> describes how the restored
+mode can be used to achieve hybrid PQ/T confidentiality as
+defined in <span><a href="https://rfc-editor.org/rfc/rfc9794#section-5" class="relref">Section 5</a> of [<a href="#RFC9794" class="cite xref">RFC9794</a>]</span> during the transition to quantum-safe encryption.
+<a href="#sec-motivation" class="auto internal xref">Section 3.8</a> discusses the transitional nature of this construction and reviews
+the guidance available to application developers looking to begin the transition to
+quantum-safe encryption with existing libraries and APIs.<a href="#section-1-4" class="pilcrow">¶</a></p>
+<p id="section-1-5">To motivate the extension, <a href="#sec-combiner" class="auto internal xref">Section 3.7.2</a> discusses how the extension can be used
+as a type of black-box KEM combiner (<span>[<a href="#I-D.ounsworth-cfrg-kem-combiners" class="cite xref">I-D.ounsworth-cfrg-kem-combiners</a>]</span>), similar to
+the construction proposed in <span>[<a href="#Alwen2023" class="cite xref">Alwen2023</a>]</span>, to allow application developers to begin
+the transition to quantum-safe encryption via usable libraries and APIs.<a href="#section-1-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="conventions-and-definitions">
+<section id="section-2">
+      <h2 id="name-conventions-and-definitions">
+<a href="#section-2" class="section-number selfRef">2. </a><a href="#name-conventions-and-definitions" class="section-name selfRef">Conventions and Definitions</a>
+      </h2>
+<p id="section-2-1">The key words "<span class="bcp14">MUST</span>", "<span class="bcp14">MUST NOT</span>", "<span class="bcp14">REQUIRED</span>", "<span class="bcp14">SHALL</span>", "<span class="bcp14">SHALL NOT</span>", "<span class="bcp14">SHOULD</span>", "<span class="bcp14">SHOULD NOT</span>", "<span class="bcp14">RECOMMENDED</span>", "<span class="bcp14">NOT RECOMMENDED</span>",
+"<span class="bcp14">MAY</span>", and "<span class="bcp14">OPTIONAL</span>" in this document are to be interpreted as
+described in BCP 14 <span>[<a href="#RFC2119" class="cite xref">RFC2119</a>]</span> <span>[<a href="#RFC8174" class="cite xref">RFC8174</a>]</span> when, and only when, they
+appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶</a></p>
+<p id="section-2-2">Terms from <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span> are used without redefinition; particular reference is
+made to the <strong>DHKEM</strong> construction <span><a href="https://rfc-editor.org/rfc/rfc9180#section-4.1" class="relref">Section 4.1</a> of [<a href="#RFC9180" class="cite xref">RFC9180</a>]</span>.
+The following additional term is used herein:<a href="#section-2-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-2-3.1">
+          <p id="section-2-3.1.1"><strong>AKEM:</strong> a KEM whose encapsulation additionally takes the sender's static
+private key and implicitly binds the shared secret to it.<a href="#section-2-3.1.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+</section>
+</div>
+<div id="sec-ext">
+<section id="section-3">
+      <h2 id="name-authenticated-pre-shared-ke">
+<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-authenticated-pre-shared-ke" class="section-name selfRef">Authenticated Pre-Shared Key Mode Extension to <span class="cite xref">[I-D.ietf-hpke-hpke]</span></a>
+      </h2>
+<p id="section-3-1">This section specifies the additions to <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span> required to
+restore <code>mode_auth_psk</code>. These extensions are defined so that
+the externally observable behavior of the existing HPKE modes is unchanged,
+although this document modifies the <code>VerifyPSKInputs()</code> procedure in
+<span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span>.<a href="#section-3-1" class="pilcrow">¶</a></p>
+<div id="mode-identifiers">
+<section id="section-3.1">
+        <h3 id="name-mode-identifiers">
+<a href="#section-3.1" class="section-number selfRef">3.1. </a><a href="#name-mode-identifiers" class="section-name selfRef">Mode Identifiers</a>
+        </h3>
+<p id="section-3.1-1">The reserved entry for value <code>0x03</code> in Table 1 of
+<span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span> is replaced with the following mode identifier, as
+originally specified in Table 1 of <span>[<a href="#RFC9180" class="cite xref">RFC9180</a>]</span>:<a href="#section-3.1-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-3.1-2">
+<pre>
+mode_auth_psk = 0x03
+</pre><a href="#section-3.1-2" class="pilcrow">¶</a>
+</div>
+<p id="section-3.1-3">The value <code>0x02</code> remains reserved.<a href="#section-3.1-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="exclusion-of-0x02-modeauth-from-mode-identifiers">
+<section id="section-3.2">
+        <h3 id="name-exclusion-of-0x02-mode_auth">
+<a href="#section-3.2" class="section-number selfRef">3.2. </a><a href="#name-exclusion-of-0x02-mode_auth" class="section-name selfRef">Exclusion of 0x02 <code>mode_auth</code> from Mode Identifiers</a>
+        </h3>
+<p id="section-3.2-1">Although restoring  the <code>AuthEncap()</code> and <code>AuthDecap()</code> functions would also
+allow for restoring <code>mode_auth</code>, this mode cannot offer quantum-safe encryption,
+and its identifier is therefore not reintroduced.<a href="#section-3.2-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="sec-authencap">
+<section id="section-3.3">
+        <h3 id="name-dhkem-extension-authencap-a">
+<a href="#section-3.3" class="section-number selfRef">3.3. </a><a href="#name-dhkem-extension-authencap-a" class="section-name selfRef">DHKEM Extension: <code>AuthEncap()</code> and <code>AuthDecap()</code></a>
+        </h3>
+<p id="section-3.3-1">The following two functions are added to the DHKEM, extending it to an AKEM
+(DHAKEM).
+They are reproduced verbatim from <span><a href="https://rfc-editor.org/rfc/rfc9180#section-4.1" class="relref">Section 4.1</a> of [<a href="#RFC9180" class="cite xref">RFC9180</a>]</span>. All helper
+functions (<code>GenerateKeyPair</code>, <code>DH</code>, <code>SerializePublicKey</code>,
+<code>DeserializePublicKey</code>, <code>ExtractAndExpand</code>) are as defined in
+<span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span>.<a href="#section-3.3-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-3.3-2">
+<pre>
+def AuthEncap(pkR, skS):
+  skE, pkE = GenerateKeyPair()
+  dh = concat(DH(skE, pkR), DH(skS, pkR))
+  enc = SerializePublicKey(pkE)
+
+  pkRm = SerializePublicKey(pkR)
+  pkSm = SerializePublicKey(pk(skS))
+
+  kem_context = concat(enc, pkRm, pkSm)
+  shared_secret = ExtractAndExpand(dh, kem_context)
+
+  return shared_secret, enc
+
+def AuthDecap(enc, skR, pkS):
+  pkE = DeserializePublicKey(enc)
+  dh = concat(DH(skR, pkE), DH(skR, pkS))
+
+  pkRm = SerializePublicKey(pk(skR))
+  pkSm = SerializePublicKey(pkS)
+  kem_context = concat(enc, pkRm, pkSm)
+
+  shared_secret = ExtractAndExpand(dh, kem_context)
+  return shared_secret
+</pre><a href="#section-3.3-2" class="pilcrow">¶</a>
+</div>
+<p id="section-3.3-3">Note that the <code>AuthEncap()</code> and <code>AuthDecap()</code> functions are vulnerable to
+key-compromise impersonation (KCI): the assurance that the shared secret was
+generated by the holder of the private key <code>skS</code> does not hold if the recipient
+private key <code>skR</code> is compromised. See <a href="#sec-security" class="auto internal xref">Section 4</a> for further discussion;
+see <a href="#sec-setup" class="auto internal xref">Section 3.5</a> for integration of a pre-shared key.<a href="#section-3.3-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="verifypskinputs">
+<section id="section-3.4">
+        <h3 id="name-verifypskinputs">
+<a href="#section-3.4" class="section-number selfRef">3.4. </a><a href="#name-verifypskinputs" class="section-name selfRef"><code>VerifyPSKInputs</code></a>
+        </h3>
+<p id="section-3.4-1">The <code>VerifyPSKInputs()</code> function defined in <span><a href="https://rfc-editor.org/rfc/rfc9180#section-5.1" class="relref">Section 5.1</a> of [<a href="#RFC9180" class="cite xref">RFC9180</a>]</span> and
+<span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span> is extended to handle the two new modes. The updated
+function replaces the original:<a href="#section-3.4-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-3.4-2">
+<pre>
+def VerifyPSKInputs(mode, psk, psk_id):
+  got_psk = (psk != default_psk)
+  got_psk_id = (psk_id != default_psk_id)
+  if got_psk != got_psk_id:
+    raise Exception("Inconsistent PSK inputs")
+
+  if got_psk and mode in [mode_base]:
+    raise Exception("PSK input provided when not needed")
+  if (not got_psk) and mode in [mode_psk, mode_auth_psk]:
+    raise Exception("Missing required PSK input")
+</pre><a href="#section-3.4-2" class="pilcrow">¶</a>
+</div>
+<p id="section-3.4-3">The only change from the original is that <code>mode_psk</code> is replaced by
+<code>[mode_psk, mode_auth_psk]</code> in the final guard.<a href="#section-3.4-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="sec-setup">
+<section id="section-3.5">
+        <h3 id="name-setup-functions">
+<a href="#section-3.5" class="section-number selfRef">3.5. </a><a href="#name-setup-functions" class="section-name selfRef">Setup Functions</a>
+        </h3>
+<p id="section-3.5-1">The following four setup functions are reproduced verbatim from Sections <a href="https://rfc-editor.org/rfc/rfc9180#section-5.1.3" class="relref">5.1.3</a> and <a href="https://rfc-editor.org/rfc/rfc9180#section-5.1.4" class="relref">5.1.4</a> of <span>[<a href="#RFC9180" class="cite xref">RFC9180</a>]</span>.  <code>KeyScheduleS()</code>/<code>KeyScheduleR()</code> and
+<code>AuthEncap()</code>/<code>AuthDecap()</code> are as defined in <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span> and
+<a href="#sec-authencap" class="auto internal xref">Section 3.3</a> respectively.<a href="#section-3.5-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-3.5-2">
+<pre>
+def SetupAuthPSKS(pkR, info, psk, psk_id, skS):
+  shared_secret, enc = AuthEncap(pkR, skS)
+  return enc, KeyScheduleS(mode_auth_psk, shared_secret, info,
+                           psk, psk_id)
+
+def SetupAuthPSKR(enc, skR, info, psk, psk_id, pkS):
+  shared_secret = AuthDecap(enc, skR, pkS)
+  return KeyScheduleR(mode_auth_psk, shared_secret, info,
+                      psk, psk_id)
+</pre><a href="#section-3.5-2" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="input-validation-and-error-handling">
+<section id="section-3.6">
+        <h3 id="name-input-validation-and-error-">
+<a href="#section-3.6" class="section-number selfRef">3.6. </a><a href="#name-input-validation-and-error-" class="section-name selfRef">Input Validation and Error Handling</a>
+        </h3>
+<p id="section-3.6-1">In addition to the validation requirements in <span><a href="https://datatracker.ietf.org/doc/html/draft-ietf-hpke-hpke-03#section-7.1.4" class="relref">Section 7.1.4</a> of [<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span>, the recipient <span class="bcp14">MUST</span> validate the sender's static public
+key <code>pkS</code> before use in <code>AuthDecap()</code>, applying the same validation rules as for
+other public key inputs. Validation failure <span class="bcp14">MUST</span> yield a <code>ValidationError</code>.<a href="#section-3.6-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="sec-dhakem">
+<section id="section-3.7">
+        <h3 id="name-dhakem-with-psk">
+<a href="#section-3.7" class="section-number selfRef">3.7. </a><a href="#name-dhakem-with-psk" class="section-name selfRef">DHAKEM with PSK</a>
+        </h3>
+<p id="section-3.7-1">This section illustrates how the authenticated mode defined
+in <a href="#sec-ext" class="auto internal xref">Section 3</a> can be used.  Any AEAD identifier from <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span> may
+be used; the resulting context supports <code>Seal()</code>, <code>Open()</code>, and <code>Export()</code>.
+Key generation follows <code>GenerateKeyPair()</code> from <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span>.<a href="#section-3.7-1" class="pilcrow">¶</a></p>
+<p id="section-3.7-2"><code>mode_auth_psk</code> may be used via its setup function: the sender calls
+<code>SetupAuthPSKS()</code> and the receiver calls <code>SetupAuthPSKR()</code>, with a pre-shared key
+<code>psk</code> and a PSK identifier <code>psk_id</code>, as defined in <a href="#sec-setup" class="auto internal xref">Section 3.5</a>.
+As in <span>[<a href="#RFC9180" class="cite xref">RFC9180</a>]</span>, both parties are assumped to have been provisioned with the
+PSK value <code>psk</code> and another byte string <code>psk_id</code>.<a href="#section-3.7-2" class="pilcrow">¶</a></p>
+<p id="section-3.7-3">This mode <span class="bcp14">SHOULD</span> be used with a quantum-safe PSK value as described below in
+order to offer hybrid confidentiality properties.<a href="#section-3.7-3" class="pilcrow">¶</a></p>
+<div id="sec-hybrid">
+<section id="section-3.7.1">
+          <h4 id="name-pq-t-hybrid-construction">
+<a href="#section-3.7.1" class="section-number selfRef">3.7.1. </a><a href="#name-pq-t-hybrid-construction" class="section-name selfRef">PQ/T Hybrid Construction</a>
+          </h4>
+<div class="alignLeft art-text artwork" id="section-3.7.1-1">
+<pre>
+def HybridSetupS(pkR, skS, info, psk, psk_id):
+  enc_dh, ctx = SetupAuthPSKS(pkR, info, psk, psk_id, skS)
+  return enc_dh, ctx
+
+def HybridSetupR(enc, skR, pkS, info, psk, psk):
+  return SetupAuthPSKR(enc_dh, skR, info, psk, psk_id, pkS)
+</pre><a href="#section-3.7.1-1" class="pilcrow">¶</a>
+</div>
+<p id="section-3.7.1-2">The <code>suite_id</code> in the HPKE key schedule reflects only the ciphersuite
+<code>(KEM_ID, KDF_ID, AEAD_ID)</code>, where <code>KEM_ID</code> is a DHAKEM.
+Generation and distribution of a quantum-safe PSK value is left to the
+application.<a href="#section-3.7.1-2" class="pilcrow">¶</a></p>
+<p id="section-3.7.1-3"><strong>Hybrid confidentiality.</strong> <code>KeyScheduleS()</code>/<code>KeyScheduleR()</code> delegate to
+<code>CombineSecrets</code>, for which <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span> defines two variants. In
+<code>CombineSecrets_TwoStage()</code>, the combination is <code>secret =
+LabeledExtract(dhkem_shared_secret, "secret", psk)</code>, equivalent to
+<code>HKDF-Extract(salt = dhkem_shared_secret, IKM = psk)</code> <span>[<a href="#RFC5869" class="cite xref">RFC5869</a>]</span>. In
+<code>CombineSecrets_OneStage()</code>, <code>dhkem_shared_secret</code> and <code>psk</code> are length-prefixed
+and concatenated before a single <code>LabeledDerive()</code> call. In both cases,
+<code>dhkem_shared_secret</code> and <code>psk</code> enter the combination as independent inputs.
+The intended design property is that <code>secret</code> remains pseudorandom as long as at
+least one of the two inputs is---meaning an adversary would need to attack both
+the classical DH-based component and the PQ-KEM to recover <code>secret</code>, as seen
+in <span>[<a href="#I-D.ounsworth-cfrg-kem-combiners" class="cite xref">I-D.ounsworth-cfrg-kem-combiners</a>]</span> and subsequently,
+<span>[<a href="#I-D.draft-connolly-cfrg-xwing-kem-10" class="cite xref">I-D.draft-connolly-cfrg-xwing-kem-10</a>]</span>.<a href="#section-3.7.1-3" class="pilcrow">¶</a></p>
+<p id="section-3.7.1-4">Whether
+this property holds formally for a specific <code>CombineSecrets</code> variant depends on
+that variant's security analysis, which is outside the scope of this document.<a href="#section-3.7.1-4" class="pilcrow">¶</a></p>
+<p id="section-3.7.1-5"><strong>Authentication.</strong> This mode retains the implicit sender
+authentication properties of DHAKEM described in <span>[<a href="#RFC9180" class="cite xref">RFC9180</a>]</span>.
+A quantum adversary with access to the PSK can also forge authenticated messages.<a href="#section-3.7.1-5" class="pilcrow">¶</a></p>
+<p id="section-3.7.1-6"><strong>PSK freshness.</strong> The PSK <code>psk</code> <span class="bcp14">MUST</span> satisfy the
+entropy requirement in <span><a href="https://datatracker.ietf.org/doc/html/draft-ietf-hpke-hpke-03#section-9.5" class="relref">Section 9.5</a> of [<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span> (32 bytes of
+uniform randomness).<a href="#section-3.7.1-6" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="sec-combiner">
+<section id="section-3.7.2">
+          <h4 id="name-akem-pq-kem-combiner-inform">
+<a href="#section-3.7.2" class="section-number selfRef">3.7.2. </a><a href="#name-akem-pq-kem-combiner-inform" class="section-name selfRef">AKEM/PQ KEM "Combiner" (Informative)</a>
+          </h4>
+<p id="section-3.7.2-1">Using <code>mode_auth_psk</code> with the shared secret from a PQ-KEM as the provided "psk"
+value allows application developers to provide hybrid-transitional security properties
+using ready-made libraries and APIs. Although not a true pre-shared key, the terminology
+from similar work by <span>[<a href="#Alwen2023" class="cite xref">Alwen2023</a>]</span> ("pskAPKE") is retained.<a href="#section-3.7.2-1" class="pilcrow">¶</a></p>
+<p id="section-3.7.2-2">The result is a KEM combiner-style construction <span>[<a href="#I-D.ounsworth-cfrg-kem-combiners" class="cite xref">I-D.ounsworth-cfrg-kem-combiners</a>]</span>
+that provides hybrid PQ/T confidentiality and classical authentication, without requiring
+developers to manage their own encryption context, a frequent source of developer error
+and a motivating factor for the API design choices of <span>[<a href="#RFC9180" class="cite xref">RFC9180</a>]</span>.<a href="#section-3.7.2-2" class="pilcrow">¶</a></p>
+<p id="section-3.7.2-3">In addition to the keypair specified in <a href="#sec-setup" class="auto internal xref">Section 3.5</a>, the receiver holds an additional
+post-quantim keypair, (<code>skR_pq</code>, <code>pkR_pq</code>).
+Prior to setting up an HPKE encryption context (either via <code>Setup</code> or via a single-shot
+API), the sender encapsulates a PQ-KEM to the receiver's PQ public key <code>pkR_pq</code>, using
+the resulting shared secret <code>ss_pq</code> as a "PSK", and a static identifier as the PSK
+identifier.
+The ciphertext encapsulation of <code>ss_pq</code>, <code>enc_pq</code>, is included in <code>info</code> to
+bind it to the key schedule.<a href="#section-3.7.2-3" class="pilcrow">¶</a></p>
+<p id="section-3.7.2-4">An example construction is provided below, with reference to the following terms:<a href="#section-3.7.2-4" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-3.7.2-5.1">
+              <p id="section-3.7.2-5.1.1"><strong>PQ-KEM:</strong> a post-quantum KEM, e.g., ML-KEM <span>[<a href="#FIPS203" class="cite xref">FIPS203</a>]</span> or an
+algorithm from <span>[<a href="#I-D.ietf-hpke-pq" class="cite xref">I-D.ietf-hpke-pq</a>]</span>.<a href="#section-3.7.2-5.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-3.7.2-5.2">
+              <p id="section-3.7.2-5.2.1"><code>PQKEM.Encap(pkR_pq)</code>: PQ-KEM encapsulation; returns <code>(enc_pq, ss_pq)</code>.<a href="#section-3.7.2-5.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-3.7.2-5.3">
+              <p id="section-3.7.2-5.3.1"><code>PQKEM.Decap(enc_pq, skR_pq)</code>: PQ-KEM decapsulation; returns <code>ss_pq</code>.<a href="#section-3.7.2-5.3.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-3.7.2-5.4">
+              <p id="section-3.7.2-5.4.1"><code>Nenc_pq</code>: the fixed ciphertext length of the chosen PQ-KEM, in bytes.<a href="#section-3.7.2-5.4.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+<div class="alignLeft art-text artwork" id="section-3.7.2-6">
+<pre>
+def HybridSetupS(pkR, pkR_pq, skS, info):
+  enc_pq, ss_pq = PQKEM.Encap(pkR_pq)
+  enc_dh, ctx = SetupAuthPSKS(pkR, concat(info, enc_pq), ss_pq, enc_pq, skS)
+  return concat(enc_dh, enc_pq), ctx
+
+def HybridSetupR(enc, skR, skR_pq, pkR_pq, pkS, info):
+  enc_dh, enc_pq = enc[:Nenc], enc[Nenc:]
+  ss_pq = PQKEM.Decap(enc_pq, skR_pq)
+  return SetupAuthPSKR(enc_dh, skR, concat(info, enc_pq), ss_pq, enc_pq, pkS)
+</pre><a href="#section-3.7.2-6" class="pilcrow">¶</a>
+</div>
+<p id="section-3.7.2-7"><strong>Classical (implicit) sender authentication:</strong> Only classical sender
+authentication is provided; in contrast to <a href="#sec-hybrid" class="auto internal xref">Section 3.7.1</a>, the "psk" value
+provides no sender authentication, as it is constructed rather than pre-shared.
+This limitation is assessed in <a href="#sec-motivation" class="auto internal xref">Section 3.8</a>.<a href="#section-3.7.2-7" class="pilcrow">¶</a></p>
+<p id="section-3.7.2-8">The <code>info</code> parameter will exceed 64 bytes. Implementors must ensure their choice of
+algorithms and underlying implementation can support parameters of this length.<a href="#section-3.7.2-8" class="pilcrow">¶</a></p>
+<p id="section-3.7.2-9">The shared secret <code>ss_pq</code> must satisfy the entropy requirement in
+<span><a href="https://datatracker.ietf.org/doc/html/draft-ietf-hpke-hpke-03#section-9.5" class="relref">Section 9.5</a> of [<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span>.<a href="#section-3.7.2-9" class="pilcrow">¶</a></p>
+<p id="section-3.7.2-10">Implementations should verify <code>len(enc) == Nenc + Nenc_pq</code> and reject
+encapsulations of any other length. A fresh <code>(ss_pq, enc_pq)</code> pair should be
+generated for each encapsulation; reuse of a prior <code>enc_pq</code> is prohibited. The
+<code>suite_id</code> in the HPKE key schedule reflects only the ciphersuite
+<code>(AKEM_ID, KDF_ID, AEAD_ID)</code>; the PQ-KEM algorithm identity should be conveyed
+via application-layer framing when multiple PQ-KEM algorithms are supported.<a href="#section-3.7.2-10" class="pilcrow">¶</a></p>
+<p id="section-3.7.2-11">Note that <span>[<a href="#Alwen2023" class="cite xref">Alwen2023</a>]</span>
+describes a related hybrid construction in which a PQ <em>AKEM</em> (rather than a
+plain KEM) is used to generate the PSK, which would additionally provide
+post-quantum sender authentication; that stronger construction is outside the
+scope of this document.<a href="#section-3.7.2-11" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="sec-motivation">
+<section id="section-3.8">
+        <h3 id="name-motivation-informative">
+<a href="#section-3.8" class="section-number selfRef">3.8. </a><a href="#name-motivation-informative" class="section-name selfRef">Motivation (Informative)</a>
+        </h3>
+<p id="section-3.8-1">Downstream application developers are in a bind: though they may be aware of advice to
+implement quantum-safe encryption on an accelerated timeline, they may encounter rapidly-
+evolving guidance on best practices, a lack of direct parity with classical constructions,
+and a releative paucity of stable APIs suitable for non-cryptographers <span>[<a href="#PQCodePkgs" class="cite xref">PQCodePkgs</a>]</span>.<a href="#section-3.8-1" class="pilcrow">¶</a></p>
+<p id="section-3.8-2">Non-cryptographers looking to offer classical/quantum-safe (hybrid) encryption in their
+own applications can look to early-stage implementations of
+<span>[<a href="#I-D.draft-connolly-cfrg-xwing-kem-10" class="cite xref">I-D.draft-connolly-cfrg-xwing-kem-10</a>]</span>, or may refer to now-expired
+<span>[<a href="#I-D.ounsworth-cfrg-kem-combiners" class="cite xref">I-D.ounsworth-cfrg-kem-combiners</a>]</span>, but will need to manage their own implementation.
+Further, the guidance on post-quantum signature schemes is still under active development,
+and if libraries are available, they come with strong caveats about changing APIs and general
+maturity.<a href="#section-3.8-2" class="pilcrow">¶</a></p>
+<p id="section-3.8-3">Although DH-based authentication is not future-forward, it remains in widespread use.
+Further, although the property of hybrid encryption with classical authentication is not as
+straightforward to communicate as an unauthenticated hybrid construct, protocols such as
+Noise IK, as used in <span>[<a href="#Wireguard2020" class="cite xref">Wireguard2020</a>]</span>, indicate their usage.
+Simple APIs that allow application developers to deploy quantum-resistent encryption as
+a transitional measure without deprecating the classical authentication properties of
+their application provides a path towards quantum readiness.<a href="#section-3.8-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="sec-security">
+<section id="section-4">
+      <h2 id="name-security-considerations">
+<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
+      </h2>
+<p id="section-4-1">The sender-authentication and key-compromise impersonation (KCI) properties of
+<code>mode_auth_psk</code> are as described in Sections <a href="https://rfc-editor.org/rfc/rfc9180#section-9.1" class="relref">9.1</a> and <a href="https://rfc-editor.org/rfc/rfc9180#section-9.1.1" class="relref">9.1.1</a> of <span>[<a href="#RFC9180" class="cite xref">RFC9180</a>]</span>, which apply without change to the functions defined in <a href="#sec-ext" class="auto internal xref">Section 3</a>.
+Security properties specific to the hybrid PQ/T construction are discussed
+informatively in <a href="#sec-hybrid" class="auto internal xref">Section 3.7.1</a>.<a href="#section-4-1" class="pilcrow">¶</a></p>
+<p id="section-4-2">The formal security of the DHKEM authenticated modes under the Gap-DH assumption
+is established in <span>[<a href="#Alwen2021" class="cite xref">Alwen2021</a>]</span>. The security of <code>mode_auth_psk</code>---termed
+<code>AuthPSK</code> in <span>[<a href="#Alwen2023" class="cite xref">Alwen2023</a>]</span>---is analyzed there as the <code>pskAPKE</code> scheme.<a href="#section-4-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="sec-iana">
+<section id="section-5">
+      <h2 id="name-iana-considerations">
+<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
+      </h2>
+<p id="section-5-1">This document requests no IANA actions; all identifiers are drawn from
+registries defined in <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span>.<a href="#section-5-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="sec-combined-references">
+<section id="section-6">
+      <h2 id="name-references">
+<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-references" class="section-name selfRef">References</a>
+      </h2>
+<div id="sec-normative-references">
+<section id="section-6.1">
+        <h3 id="name-normative-references">
+<a href="#section-6.1" class="section-number selfRef">6.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
+        </h3>
+<dl class="references">
+<dt id="I-D.ietf-hpke-hpke">[I-D.ietf-hpke-hpke]</dt>
+        <dd>
+<span class="refAuthor">Barnes, R.</span>, <span class="refAuthor">Bhargavan, K.</span>, <span class="refAuthor">Lipp, B.</span>, and <span class="refAuthor">C. A. Wood</span>, <span class="refTitle">"Hybrid Public Key Encryption"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-hpke-hpke-03</span>, <time datetime="2026-03-02" class="refDate">2 March 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-hpke-hpke-03">https://datatracker.ietf.org/doc/html/draft-ietf-hpke-hpke-03</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="I-D.ounsworth-cfrg-kem-combiners">[I-D.ounsworth-cfrg-kem-combiners]</dt>
+        <dd>
+<span class="refAuthor">Ounsworth, M.</span>, <span class="refAuthor">Wussler, A.</span>, and <span class="refAuthor">S. Kousidis</span>, <span class="refTitle">"Combiner function for hybrid key encapsulation mechanisms (Hybrid KEMs)"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ounsworth-cfrg-kem-combiners-05</span>, <time datetime="2024-01-31" class="refDate">31 January 2024</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ounsworth-cfrg-kem-combiners-05">https://datatracker.ietf.org/doc/html/draft-ounsworth-cfrg-kem-combiners-05</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC2119">[RFC2119]</dt>
+        <dd>
+<span class="refAuthor">Bradner, S.</span>, <span class="refTitle">"Key words for use in RFCs to Indicate Requirement Levels"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 2119</span>, <span class="seriesInfo">DOI 10.17487/RFC2119</span>, <time datetime="1997-03" class="refDate">March 1997</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc2119">https://www.rfc-editor.org/rfc/rfc2119</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8174">[RFC8174]</dt>
+      <dd>
+<span class="refAuthor">Leiba, B.</span>, <span class="refTitle">"Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 8174</span>, <span class="seriesInfo">DOI 10.17487/RFC8174</span>, <time datetime="2017-05" class="refDate">May 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8174">https://www.rfc-editor.org/rfc/rfc8174</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="sec-informative-references">
+<section id="section-6.2">
+        <h3 id="name-informative-references">
+<a href="#section-6.2" class="section-number selfRef">6.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
+        </h3>
+<dl class="references">
+<dt id="Alwen2021">[Alwen2021]</dt>
+        <dd>
+<span class="refAuthor">Alwen, J.</span>, <span class="refAuthor">Blanchet, B.</span>, <span class="refAuthor">Hauck, E.</span>, <span class="refAuthor">Kiltz, E.</span>, <span class="refAuthor">Lipp, B.</span>, and <span class="refAuthor">D. Riepel</span>, <span class="refTitle">"HPKE: Hybrid Public Key Encryption"</span>, <span class="refContent">Advances in Cryptology -- EUROCRYPT 2021, LNCS 12696, pp. 396-427</span>, <span class="seriesInfo">DOI 10.1007/978-3-030-77886-6_14</span>, <time datetime="2021" class="refDate">2021</time>, <span>&lt;<a href="https://doi.org/10.1007/978-3-030-77886-6_14">https://doi.org/10.1007/978-3-030-77886-6_14</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="Alwen2023">[Alwen2023]</dt>
+        <dd>
+<span class="refAuthor">Alwen, J.</span>, <span class="refAuthor">Janneck, J.</span>, <span class="refAuthor">Kiltz, E.</span>, and <span class="refAuthor">B. Lipp</span>, <span class="refTitle">"The Pre-Shared Key Modes of HPKE"</span>, <span class="refContent">Advances in Cryptology -- ASIACRYPT 2023</span>, <time datetime="2023" class="refDate">2023</time>, <span>&lt;<a href="https://eprint.iacr.org/2023/1480">https://eprint.iacr.org/2023/1480</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="FIPS203">[FIPS203]</dt>
+        <dd>
+<span class="refAuthor">National Institute of Standards and Technology</span>, <span class="refTitle">"Module-Lattice-Based Key-Encapsulation Mechanism Standard"</span>, <span class="seriesInfo">FIPS 203</span>, <time datetime="2024-08" class="refDate">August 2024</time>, <span>&lt;<a href="https://doi.org/10.6028/NIST.FIPS.203">https://doi.org/10.6028/NIST.FIPS.203</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="I-D.draft-connolly-cfrg-xwing-kem-10">[I-D.draft-connolly-cfrg-xwing-kem-10]</dt>
+        <dd>
+<span class="refAuthor">Connolly, D.</span>, <span class="refAuthor">Schwabe, P.</span>, and <span class="refAuthor">B. Westerbaan</span>, <span class="refTitle">"X-Wing: general-purpose hybrid post-quantum KEM"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-connolly-cfrg-xwing-kem-10</span>, <time datetime="2026-03-02" class="refDate">2 March 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-connolly-cfrg-xwing-kem-10">https://datatracker.ietf.org/doc/html/draft-connolly-cfrg-xwing-kem-10</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="I-D.ietf-hpke-pq">[I-D.ietf-hpke-pq]</dt>
+        <dd>
+<span class="refAuthor">Barnes, R.</span> and <span class="refAuthor">D. Connolly</span>, <span class="refTitle">"Post-Quantum and Post-Quantum/Traditional Hybrid Algorithms for HPKE"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-hpke-pq-04</span>, <time datetime="2026-03-02" class="refDate">2 March 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-hpke-pq-04">https://datatracker.ietf.org/doc/html/draft-ietf-hpke-pq-04</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="PQCodePkgs">[PQCodePkgs]</dt>
+        <dd>
+<span class="refAuthor">Post Quantum Cryptography Alliance</span>, <span class="refTitle">"PQ Code Package Repositories (accessed 2026-04-30)"</span>, <time datetime="2026" class="refDate">2026</time>, <span>&lt;<a href="https://github.com/orgs/pq-code-package/repositories">https://github.com/orgs/pq-code-package/repositories</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC5869">[RFC5869]</dt>
+        <dd>
+<span class="refAuthor">Krawczyk, H.</span> and <span class="refAuthor">P. Eronen</span>, <span class="refTitle">"HMAC-based Extract-and-Expand Key Derivation Function (HKDF)"</span>, <span class="seriesInfo">RFC 5869</span>, <span class="seriesInfo">DOI 10.17487/RFC5869</span>, <time datetime="2010-05" class="refDate">May 2010</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc5869">https://www.rfc-editor.org/rfc/rfc5869</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9180">[RFC9180]</dt>
+        <dd>
+<span class="refAuthor">Barnes, R.</span>, <span class="refAuthor">Bhargavan, K.</span>, <span class="refAuthor">Lipp, B.</span>, and <span class="refAuthor">C. Wood</span>, <span class="refTitle">"Hybrid Public Key Encryption"</span>, <span class="seriesInfo">RFC 9180</span>, <span class="seriesInfo">DOI 10.17487/RFC9180</span>, <time datetime="2022-02" class="refDate">February 2022</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9180">https://www.rfc-editor.org/rfc/rfc9180</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9794">[RFC9794]</dt>
+        <dd>
+<span class="refAuthor">Driscoll, F.</span>, <span class="refAuthor">Parsons, M.</span>, and <span class="refAuthor">B. Hale</span>, <span class="refTitle">"Terminology for Post-Quantum Traditional Hybrid Schemes"</span>, <span class="seriesInfo">RFC 9794</span>, <span class="seriesInfo">DOI 10.17487/RFC9794</span>, <time datetime="2025-06" class="refDate">June 2025</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9794">https://www.rfc-editor.org/rfc/rfc9794</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="Wireguard2020">[Wireguard2020]</dt>
+      <dd>
+<span class="refAuthor">Donenfeld, J. A.</span>, <span class="refTitle">"WireGuard: Next Generation Kernel Network Tunnel"</span>, <time datetime="2020" class="refDate">2020</time>, <span>&lt;<a href="https://www.wireguard.com/papers/wireguard.pdf">https://www.wireguard.com/papers/wireguard.pdf</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+</div>
+</section>
+</div>
+<div id="acknowledgments">
+<section id="appendix-A">
+      <h2 id="name-acknowledgments">
+<a href="#name-acknowledgments" class="section-name selfRef">Acknowledgments</a>
+      </h2>
+<p id="appendix-A-1"><em>TK</em><a href="#appendix-A-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="authors-addresses">
+<section id="appendix-B">
+      <h2 id="name-authors-addresses">
+<a href="#name-authors-addresses" class="section-name selfRef">Authors' Addresses</a>
+      </h2>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Cory Francis Myers (<span class="role">editor</span>)</span></div>
+<div dir="auto" class="left"><span class="org">Freedom of the Press Foundation</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:cfm@acm.org" class="email">cfm@acm.org</a>
+</div>
+</address>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Rowen Shane (<span class="role">editor</span>)</span></div>
+<div dir="auto" class="left"><span class="org">Freedom of the Press Foundation</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:ro@freedom.press" class="email">ro@freedom.press</a>
+</div>
+</address>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Giulio Berra (<span class="role">editor</span>)</span></div>
+<div dir="auto" class="left"><span class="org">Freedom of the Press Foundation</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:giulio@freedom.press" class="email">giulio@freedom.press</a>
+</div>
+</address>
+</section>
+</div>
+<script>const toc = document.getElementById("toc");
+toc.querySelector("h2").addEventListener("click", e => {
+  toc.classList.toggle("active");
+});
+toc.querySelector("nav").addEventListener("click", e => {
+  toc.classList.remove("active");
+});
+</script>
+</body>
+</html>
