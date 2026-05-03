@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-04-02T00:35:29.913397+00:00",
+  "timestamp": "2026-05-03T00:50:04.935797+00:00",
   "repo": "cfm/draft-ms-hpke-auth-modes",
   "labels": [
     {
@@ -719,6 +719,32 @@
           ]
         }
       ]
+    },
+    {
+      "number": 19,
+      "id": "PR_kwDORjRsxc7XP7VE",
+      "title": "Revisions: AuthPSK focus, split out `pskAPKE` from extension and treat as informative.",
+      "url": "https://github.com/cfm/draft-ms-hpke-auth-modes/pull/19",
+      "state": "OPEN",
+      "author": "rocodes",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "(WIP)\r\n\r\n- Drop `mode_auth` with explanation that it cannot be constructed with quantum safety; treat it like building block to auth_psk\r\n- Treat `mode_auth_psk` with a \"true\" PSK/pq shared secret, as the focus of the extension\r\n  - Informatively offer `pskAPKE`, but drop the algorithms/parameters since it's just an example; include authentication caveats\r\n  - Drop `mode_auth` references, treat identifier as reserved\r\n- Add Motivation section describing the use-case\r\n- Fixup a few small issues (info param composition, adjust param ordering)\r\n- Add @lsd-cat as an author\r\n\r\n",
+      "createdAt": "2026-04-30T20:12:38Z",
+      "updatedAt": "2026-04-30T20:12:38Z",
+      "baseRepository": "cfm/draft-ms-hpke-auth-modes",
+      "baseRefName": "main",
+      "baseRefOid": "247fca56b9bf106b6bdb1913b4b0c7a85cfde81b",
+      "headRepository": "cfm/draft-ms-hpke-auth-modes",
+      "headRefName": "rework-for-authpsk-focus",
+      "headRefOid": "12b9e4d8cb752986fd2c871ced7fcbb6d7948e73",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
     }
   ]
 }
