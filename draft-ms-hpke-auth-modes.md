@@ -74,6 +74,7 @@ informative:
     rc: "Advances in Cryptology -- ASIACRYPT 2023"
     target: https://eprint.iacr.org/2023/1480
   I-D.draft-connolly-cfrg-xwing-kem-10:
+  I-D.draft-ietf-tls-hybrid-design-16:
   PQCodePkgs:
     title: "PQ Code Package Repositories (accessed 2026-04-30)"
     author:
@@ -94,8 +95,8 @@ The standards-track {{!I-D.ietf-hpke-hpke}} supersedes the informational
 This document restores `mode_auth_psk` mode as a strict extension, and illustrates
 how the restored mode can be used with a post-quantum shared secret as the PSK
 by application developers seeking to achieve hybrid PQ/T confidentiality while
-transitioning to quantum-safe encryption, without deprecating the implicit
-authentication properties of DHAKEM on which many applications still rely.
+transitioning to quantum-safe encryption, without deprecating the classical
+implicit authentication property on which many applications still rely.
 
 This extension requires only the
 addition of `AuthEncap()`/`AuthDecap()` to the DHKEM, the definition of four
@@ -320,9 +321,8 @@ the classical DH-based component and the PQ-KEM to recover `secret`, as seen
 in {{!I-D.ounsworth-cfrg-kem-combiners}} and subsequently,
 {{?I-D.draft-connolly-cfrg-xwing-kem-10}}.
 
-Whether
-this property holds formally for a specific `CombineSecrets` variant depends on
-that variant's security analysis, which is outside the scope of this document.
+Whether this property holds formally for a specific `CombineSecrets` variant depends
+on that variant's security analysis, which is outside the scope of this document.
 
 **Authentication.** This mode retains the implicit sender
 authentication properties of DHAKEM described in {{?RFC9180}}.
@@ -399,26 +399,33 @@ scope of this document.
 
 ## Motivation (Informative) {#sec-motivation}
 
-Downstream application developers are in a bind: though they may be aware of advice to
+Application developers are in a bind: though they may be aware of advice to
 implement quantum-safe encryption on an accelerated timeline, they may encounter rapidly-
 evolving guidance on best practices, a lack of direct parity with classical constructions,
-and a releative paucity of stable APIs suitable for non-cryptographers {{PQCodePkgs}}.
+and a relative paucity of stable libraries and APIs {{PQCodePkgs}}.
 
-Non-cryptographers looking to offer classical/quantum-safe (hybrid) encryption in their
-own applications can look to early-stage implementations of
-{{?I-D.draft-connolly-cfrg-xwing-kem-10}}, or may refer to now-expired
-{{!I-D.ounsworth-cfrg-kem-combiners}}, but will need to manage their own implementation.
-Further, the guidance on post-quantum signature schemes is still under active development,
-and if libraries are available, they come with strong caveats about changing APIs and general
-maturity.
+Developers looking to offer classical/quantum-safe (hybrid) encryption in their
+own applications, for reasons described for example in {{Section 2.1 of ?RFC9370}},
+can look to early-stage implementations of {{?I-D.draft-connolly-cfrg-xwing-kem-10}},
+or may refer to now-expired {{!I-D.ounsworth-cfrg-kem-combiners}}, but will need to
+manage their own combiner implementation.
 
-Although DH-based authentication is not future-forward, it remains in widespread use.
-Further, although the property of hybrid encryption with classical authentication is not as
-straightforward to communicate as an unauthenticated hybrid construct, protocols such as
-Noise IK, as used in {{Wireguard2020}}, indicate their usage.
-Simple APIs that allow application developers to deploy quantum-resistent encryption as
+On the other hand, production-ready quantum-safe authentication is still maturing.
+Standardized schemes offer non-repudiable, signature-based authentication, which is
+not a direct replacement for the type of DH-based implicit authentication described
+in the `auth` modes of {{?RFC9180}} or this document.
+
+Although the property of hybrid encryption with classical authentication is not as
+straightforward to communicate as unauthenticated hybrid encryption that forgoes implict
+authentication entirely, protocols such as Noise IK, as used in {{Wireguard2020}}, indicate
+its continued real-world usage while quantum-safe authentication methods become
+more available.
+
+Allowing application developers to deploy quantum-resistent encryption as
 a transitional measure without deprecating the classical authentication properties of
-their application provides a path towards quantum readiness.
+their application provides a path towards quantum readiness, similar in concept to
+{{?RFC8773}} and {{?RFC9257}}, where the introduction of a quantum-resistent PSK as a
+transitional measure is also discussed.
 
 # Security Considerations {#sec-security}
 
