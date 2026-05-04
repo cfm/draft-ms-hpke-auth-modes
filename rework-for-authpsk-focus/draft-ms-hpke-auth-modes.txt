@@ -5,8 +5,8 @@
 Network Working Group                                   C. F. Myers, Ed.
 Internet-Draft                                             R. Shane, Ed.
 Intended status: Standards Track                           G. Berra, Ed.
-Expires: 1 November 2026                 Freedom of the Press Foundation
-                                                           30 April 2026
+Expires: 5 November 2026                 Freedom of the Press Foundation
+                                                              4 May 2026
 
 
                       Authenticated Modes for HPKE
@@ -20,9 +20,8 @@ Abstract
    extension, and illustrates how the restored mode can be used with a
    post-quantum shared secret as the PSK by application developers
    seeking to achieve hybrid PQ/T confidentiality while transitioning to
-   quantum-safe encryption, without deprecating the implicit
-   authentication properties of DHAKEM on which many applications still
-   rely.
+   quantum-safe encryption, without deprecating the classical implicit
+   authentication property on which many applications still rely.
 
    This extension requires only the addition of AuthEncap()/AuthDecap()
    to the DHKEM, the definition of four setup functions, and a change in
@@ -65,7 +64,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 1 November 2026.
+   This Internet-Draft will expire on 5 November 2026.
 
 Copyright Notice
 
@@ -398,31 +397,38 @@ def HybridSetupR(enc, skR, skR_pq, pkR_pq, pkS, info):
 
 3.8.  Motivation (Informative)
 
-   Downstream application developers are in a bind: though they may be
-   aware of advice to implement quantum-safe encryption on an
-   accelerated timeline, they may encounter rapidly- evolving guidance
-   on best practices, a lack of direct parity with classical
-   constructions, and a releative paucity of stable APIs suitable for
-   non-cryptographers [PQCodePkgs].
+   Application developers are in a bind: though they may be aware of
+   advice to implement quantum-safe encryption on an accelerated
+   timeline, they may encounter rapidly- evolving guidance on best
+   practices, a lack of direct parity with classical constructions, and
+   a relative paucity of stable libraries and APIs [PQCodePkgs].
 
-   Non-cryptographers looking to offer classical/quantum-safe (hybrid)
-   encryption in their own applications can look to early-stage
+   Developers looking to offer classical/quantum-safe (hybrid)
+   encryption in their own applications, for reasons described for
+   example in Section 2.1 of [RFC9370], can look to early-stage
    implementations of [I-D.draft-connolly-cfrg-xwing-kem-10], or may
    refer to now-expired [I-D.ounsworth-cfrg-kem-combiners], but will
-   need to manage their own implementation.  Further, the guidance on
-   post-quantum signature schemes is still under active development, and
-   if libraries are available, they come with strong caveats about
-   changing APIs and general maturity.
+   need to manage their own combiner implementation.
 
-   Although DH-based authentication is not future-forward, it remains in
-   widespread use.  Further, although the property of hybrid encryption
-   with classical authentication is not as straightforward to
-   communicate as an unauthenticated hybrid construct, protocols such as
-   Noise IK, as used in [Wireguard2020], indicate their usage.  Simple
-   APIs that allow application developers to deploy quantum-resistent
+   On the other hand, production-ready quantum-safe authentication is
+   still maturing.  Standardized schemes offer non-repudiable,
+   signature-based authentication, which is not a direct replacement for
+   the type of DH-based implicit authentication described in the auth
+   modes of [RFC9180] or this document.
+
+   Although the property of hybrid encryption with classical
+   authentication is not as straightforward to communicate as
+   unauthenticated hybrid encryption that forgoes implict authentication
+   entirely, protocols such as Noise IK, as used in [Wireguard2020],
+   indicate its continued real-world usage while quantum-safe
+   authentication methods become more available.
+
+   Allowing application developers to deploy quantum-resistent
    encryption as a transitional measure without deprecating the
    classical authentication properties of their application provides a
-   path towards quantum readiness.
+   path towards quantum readiness, similar in concept to [RFC8773] and
+   [RFC9257], where the introduction of a quantum-resistent PSK as a
+   transitional measure is also discussed.
 
 4.  Security Considerations
 
@@ -496,6 +502,13 @@ def HybridSetupR(enc, skR, skR_pq, pkR_pq, pkS, info):
               10, 2 March 2026, <https://datatracker.ietf.org/doc/html/
               draft-connolly-cfrg-xwing-kem-10>.
 
+   [I-D.draft-ietf-tls-hybrid-design-16]
+              Stebila, D., Fluhrer, S., and S. Gueron, "Hybrid key
+              exchange in TLS 1.3", Work in Progress, Internet-Draft,
+              draft-ietf-tls-hybrid-design-16, 7 September 2025,
+              <https://datatracker.ietf.org/doc/html/draft-ietf-tls-
+              hybrid-design-16>.
+
    [I-D.ietf-hpke-pq]
               Barnes, R. and D. Connolly, "Post-Quantum and Post-
               Quantum/Traditional Hybrid Algorithms for HPKE", Work in
@@ -513,9 +526,25 @@ def HybridSetupR(enc, skR, skR_pq, pkR_pq, pkS, info):
               DOI 10.17487/RFC5869, May 2010,
               <https://www.rfc-editor.org/rfc/rfc5869>.
 
+   [RFC8773]  Housley, R., "TLS 1.3 Extension for Certificate-Based
+              Authentication with an External Pre-Shared Key", RFC 8773,
+              DOI 10.17487/RFC8773, March 2020,
+              <https://www.rfc-editor.org/rfc/rfc8773>.
+
    [RFC9180]  Barnes, R., Bhargavan, K., Lipp, B., and C. Wood, "Hybrid
               Public Key Encryption", RFC 9180, DOI 10.17487/RFC9180,
               February 2022, <https://www.rfc-editor.org/rfc/rfc9180>.
+
+   [RFC9257]  Housley, R., Hoyland, J., Sethi, M., and C. A. Wood,
+              "Guidance for External Pre-Shared Key (PSK) Usage in TLS",
+              RFC 9257, DOI 10.17487/RFC9257, July 2022,
+              <https://www.rfc-editor.org/rfc/rfc9257>.
+
+   [RFC9370]  Tjhai, CJ., Tomlinson, M., Bartlett, G., Fluhrer, S., Van
+              Geest, D., Garcia-Morchon, O., and V. Smyslov, "Multiple
+              Key Exchanges in the Internet Key Exchange Protocol
+              Version 2 (IKEv2)", RFC 9370, DOI 10.17487/RFC9370, May
+              2023, <https://www.rfc-editor.org/rfc/rfc9370>.
 
    [RFC9794]  Driscoll, F., Parsons, M., and B. Hale, "Terminology for
               Post-Quantum Traditional Hybrid Schemes", RFC 9794,

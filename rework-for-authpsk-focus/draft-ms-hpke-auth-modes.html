@@ -14,8 +14,8 @@
 This document restores  mode_auth_psk  mode as a strict extension, and illustrates
 how the restored mode can be used with a post-quantum shared secret as the PSK
 by application developers seeking to achieve hybrid PQ/T confidentiality while
-transitioning to quantum-safe encryption, without deprecating the implicit
-authentication properties of DHAKEM on which many applications still rely. 
+transitioning to quantum-safe encryption, without deprecating the classical
+implicit authentication property on which many applications still rely. 
        This extension requires only the
 addition of  AuthEncap() / AuthDecap()  to the DHKEM, the definition of four
 setup functions, and a change in  VerifyPSKInputs() .  The extension does not
@@ -49,8 +49,8 @@ motivates this extension.
     platformdirs 4.9.6
     pycountry 24.6.1
     PyYAML 6.0.3
-    requests 2.32.5
-    wcwidth 0.6.0
+    requests 2.33.1
+    wcwidth 0.7.0
 -->
 <link href="draft-ms-hpke-auth-modes.xml" rel="alternate" type="application/rfc+xml">
 <link href="#copyright" rel="license">
@@ -1071,11 +1071,11 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <thead><tr>
 <td class="left">Internet-Draft</td>
 <td class="center">HPKE Authenticated Modes</td>
-<td class="right">April 2026</td>
+<td class="right">May 2026</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Myers, et al.</td>
-<td class="center">Expires 1 November 2026</td>
+<td class="center">Expires 5 November 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1088,12 +1088,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-ms-hpke-auth-modes-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-04-30" class="published">30 April 2026</time>
+<time datetime="2026-05-04" class="published">4 May 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-11-01">1 November 2026</time></dd>
+<dd class="expires"><time datetime="2026-11-05">5 November 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1122,8 +1122,8 @@ svg :is([fill="white"], [fill^="#fff"]) {
 This document restores <code>mode_auth_psk</code> mode as a strict extension, and illustrates
 how the restored mode can be used with a post-quantum shared secret as the PSK
 by application developers seeking to achieve hybrid PQ/T confidentiality while
-transitioning to quantum-safe encryption, without deprecating the implicit
-authentication properties of DHAKEM on which many applications still rely.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+transitioning to quantum-safe encryption, without deprecating the classical
+implicit authentication property on which many applications still rely.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
 <p id="section-abstract-2">This extension requires only the
 addition of <code>AuthEncap()</code>/<code>AuthDecap()</code> to the DHKEM, the definition of four
 setup functions, and a change in <code>VerifyPSKInputs()</code>.  The extension does not
@@ -1168,7 +1168,7 @@ motivates this extension.<a href="#section-abstract-3" class="pilcrow">¶</a></p
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 1 November 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 5 November 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1509,9 +1509,8 @@ least one of the two inputs is---meaning an adversary would need to attack both
 the classical DH-based component and the PQ-KEM to recover <code>secret</code>, as seen
 in <span>[<a href="#I-D.ounsworth-cfrg-kem-combiners" class="cite xref">I-D.ounsworth-cfrg-kem-combiners</a>]</span> and subsequently,
 <span>[<a href="#I-D.draft-connolly-cfrg-xwing-kem-10" class="cite xref">I-D.draft-connolly-cfrg-xwing-kem-10</a>]</span>.<a href="#section-3.7.1-3" class="pilcrow">¶</a></p>
-<p id="section-3.7.1-4">Whether
-this property holds formally for a specific <code>CombineSecrets</code> variant depends on
-that variant's security analysis, which is outside the scope of this document.<a href="#section-3.7.1-4" class="pilcrow">¶</a></p>
+<p id="section-3.7.1-4">Whether this property holds formally for a specific <code>CombineSecrets</code> variant depends
+on that variant's security analysis, which is outside the scope of this document.<a href="#section-3.7.1-4" class="pilcrow">¶</a></p>
 <p id="section-3.7.1-5"><strong>Authentication.</strong> This mode retains the implicit sender
 authentication properties of DHAKEM described in <span>[<a href="#RFC9180" class="cite xref">RFC9180</a>]</span>.
 A quantum adversary with access to the PSK can also forge authenticated messages.<a href="#section-3.7.1-5" class="pilcrow">¶</a></p>
@@ -1598,24 +1597,29 @@ scope of this document.<a href="#section-3.7.2-11" class="pilcrow">¶</a></p>
         <h3 id="name-motivation-informative">
 <a href="#section-3.8" class="section-number selfRef">3.8. </a><a href="#name-motivation-informative" class="section-name selfRef">Motivation (Informative)</a>
         </h3>
-<p id="section-3.8-1">Downstream application developers are in a bind: though they may be aware of advice to
+<p id="section-3.8-1">Application developers are in a bind: though they may be aware of advice to
 implement quantum-safe encryption on an accelerated timeline, they may encounter rapidly-
 evolving guidance on best practices, a lack of direct parity with classical constructions,
-and a releative paucity of stable APIs suitable for non-cryptographers <span>[<a href="#PQCodePkgs" class="cite xref">PQCodePkgs</a>]</span>.<a href="#section-3.8-1" class="pilcrow">¶</a></p>
-<p id="section-3.8-2">Non-cryptographers looking to offer classical/quantum-safe (hybrid) encryption in their
-own applications can look to early-stage implementations of
-<span>[<a href="#I-D.draft-connolly-cfrg-xwing-kem-10" class="cite xref">I-D.draft-connolly-cfrg-xwing-kem-10</a>]</span>, or may refer to now-expired
-<span>[<a href="#I-D.ounsworth-cfrg-kem-combiners" class="cite xref">I-D.ounsworth-cfrg-kem-combiners</a>]</span>, but will need to manage their own implementation.
-Further, the guidance on post-quantum signature schemes is still under active development,
-and if libraries are available, they come with strong caveats about changing APIs and general
-maturity.<a href="#section-3.8-2" class="pilcrow">¶</a></p>
-<p id="section-3.8-3">Although DH-based authentication is not future-forward, it remains in widespread use.
-Further, although the property of hybrid encryption with classical authentication is not as
-straightforward to communicate as an unauthenticated hybrid construct, protocols such as
-Noise IK, as used in <span>[<a href="#Wireguard2020" class="cite xref">Wireguard2020</a>]</span>, indicate their usage.
-Simple APIs that allow application developers to deploy quantum-resistent encryption as
+and a relative paucity of stable libraries and APIs <span>[<a href="#PQCodePkgs" class="cite xref">PQCodePkgs</a>]</span>.<a href="#section-3.8-1" class="pilcrow">¶</a></p>
+<p id="section-3.8-2">Developers looking to offer classical/quantum-safe (hybrid) encryption in their
+own applications, for reasons described for example in <span><a href="https://rfc-editor.org/rfc/rfc9370#section-2.1" class="relref">Section 2.1</a> of [<a href="#RFC9370" class="cite xref">RFC9370</a>]</span>,
+can look to early-stage implementations of <span>[<a href="#I-D.draft-connolly-cfrg-xwing-kem-10" class="cite xref">I-D.draft-connolly-cfrg-xwing-kem-10</a>]</span>,
+or may refer to now-expired <span>[<a href="#I-D.ounsworth-cfrg-kem-combiners" class="cite xref">I-D.ounsworth-cfrg-kem-combiners</a>]</span>, but will need to
+manage their own combiner implementation.<a href="#section-3.8-2" class="pilcrow">¶</a></p>
+<p id="section-3.8-3">On the other hand, production-ready quantum-safe authentication is still maturing.
+Standardized schemes offer non-repudiable, signature-based authentication, which is
+not a direct replacement for the type of DH-based implicit authentication described
+in the <code>auth</code> modes of <span>[<a href="#RFC9180" class="cite xref">RFC9180</a>]</span> or this document.<a href="#section-3.8-3" class="pilcrow">¶</a></p>
+<p id="section-3.8-4">Although the property of hybrid encryption with classical authentication is not as
+straightforward to communicate as unauthenticated hybrid encryption that forgoes implict
+authentication entirely, protocols such as Noise IK, as used in <span>[<a href="#Wireguard2020" class="cite xref">Wireguard2020</a>]</span>, indicate
+its continued real-world usage while quantum-safe authentication methods become
+more available.<a href="#section-3.8-4" class="pilcrow">¶</a></p>
+<p id="section-3.8-5">Allowing application developers to deploy quantum-resistent encryption as
 a transitional measure without deprecating the classical authentication properties of
-their application provides a path towards quantum readiness.<a href="#section-3.8-3" class="pilcrow">¶</a></p>
+their application provides a path towards quantum readiness, similar in concept to
+<span>[<a href="#RFC8773" class="cite xref">RFC8773</a>]</span> and <span>[<a href="#RFC9257" class="cite xref">RFC9257</a>]</span>, where the introduction of a quantum-resistent PSK as a
+transitional measure is also discussed.<a href="#section-3.8-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -1695,6 +1699,10 @@ registries defined in <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D
         <dd>
 <span class="refAuthor">Connolly, D.</span>, <span class="refAuthor">Schwabe, P.</span>, and <span class="refAuthor">B. Westerbaan</span>, <span class="refTitle">"X-Wing: general-purpose hybrid post-quantum KEM"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-connolly-cfrg-xwing-kem-10</span>, <time datetime="2026-03-02" class="refDate">2 March 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-connolly-cfrg-xwing-kem-10">https://datatracker.ietf.org/doc/html/draft-connolly-cfrg-xwing-kem-10</a>&gt;</span>. </dd>
 <dd class="break"></dd>
+<dt id="I-D.draft-ietf-tls-hybrid-design-16">[I-D.draft-ietf-tls-hybrid-design-16]</dt>
+        <dd>
+<span class="refAuthor">Stebila, D.</span>, <span class="refAuthor">Fluhrer, S.</span>, and <span class="refAuthor">S. Gueron</span>, <span class="refTitle">"Hybrid key exchange in TLS 1.3"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-tls-hybrid-design-16</span>, <time datetime="2025-09-07" class="refDate">7 September 2025</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-tls-hybrid-design-16">https://datatracker.ietf.org/doc/html/draft-ietf-tls-hybrid-design-16</a>&gt;</span>. </dd>
+<dd class="break"></dd>
 <dt id="I-D.ietf-hpke-pq">[I-D.ietf-hpke-pq]</dt>
         <dd>
 <span class="refAuthor">Barnes, R.</span> and <span class="refAuthor">D. Connolly</span>, <span class="refTitle">"Post-Quantum and Post-Quantum/Traditional Hybrid Algorithms for HPKE"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-hpke-pq-04</span>, <time datetime="2026-03-02" class="refDate">2 March 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-hpke-pq-04">https://datatracker.ietf.org/doc/html/draft-ietf-hpke-pq-04</a>&gt;</span>. </dd>
@@ -1707,9 +1715,21 @@ registries defined in <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D
         <dd>
 <span class="refAuthor">Krawczyk, H.</span> and <span class="refAuthor">P. Eronen</span>, <span class="refTitle">"HMAC-based Extract-and-Expand Key Derivation Function (HKDF)"</span>, <span class="seriesInfo">RFC 5869</span>, <span class="seriesInfo">DOI 10.17487/RFC5869</span>, <time datetime="2010-05" class="refDate">May 2010</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc5869">https://www.rfc-editor.org/rfc/rfc5869</a>&gt;</span>. </dd>
 <dd class="break"></dd>
+<dt id="RFC8773">[RFC8773]</dt>
+        <dd>
+<span class="refAuthor">Housley, R.</span>, <span class="refTitle">"TLS 1.3 Extension for Certificate-Based Authentication with an External Pre-Shared Key"</span>, <span class="seriesInfo">RFC 8773</span>, <span class="seriesInfo">DOI 10.17487/RFC8773</span>, <time datetime="2020-03" class="refDate">March 2020</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8773">https://www.rfc-editor.org/rfc/rfc8773</a>&gt;</span>. </dd>
+<dd class="break"></dd>
 <dt id="RFC9180">[RFC9180]</dt>
         <dd>
 <span class="refAuthor">Barnes, R.</span>, <span class="refAuthor">Bhargavan, K.</span>, <span class="refAuthor">Lipp, B.</span>, and <span class="refAuthor">C. Wood</span>, <span class="refTitle">"Hybrid Public Key Encryption"</span>, <span class="seriesInfo">RFC 9180</span>, <span class="seriesInfo">DOI 10.17487/RFC9180</span>, <time datetime="2022-02" class="refDate">February 2022</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9180">https://www.rfc-editor.org/rfc/rfc9180</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9257">[RFC9257]</dt>
+        <dd>
+<span class="refAuthor">Housley, R.</span>, <span class="refAuthor">Hoyland, J.</span>, <span class="refAuthor">Sethi, M.</span>, and <span class="refAuthor">C. A. Wood</span>, <span class="refTitle">"Guidance for External Pre-Shared Key (PSK) Usage in TLS"</span>, <span class="seriesInfo">RFC 9257</span>, <span class="seriesInfo">DOI 10.17487/RFC9257</span>, <time datetime="2022-07" class="refDate">July 2022</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9257">https://www.rfc-editor.org/rfc/rfc9257</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9370">[RFC9370]</dt>
+        <dd>
+<span class="refAuthor">Tjhai, CJ.</span>, <span class="refAuthor">Tomlinson, M.</span>, <span class="refAuthor">Bartlett, G.</span>, <span class="refAuthor">Fluhrer, S.</span>, <span class="refAuthor">Van Geest, D.</span>, <span class="refAuthor">Garcia-Morchon, O.</span>, and <span class="refAuthor">V. Smyslov</span>, <span class="refTitle">"Multiple Key Exchanges in the Internet Key Exchange Protocol Version 2 (IKEv2)"</span>, <span class="seriesInfo">RFC 9370</span>, <span class="seriesInfo">DOI 10.17487/RFC9370</span>, <time datetime="2023-05" class="refDate">May 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9370">https://www.rfc-editor.org/rfc/rfc9370</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC9794">[RFC9794]</dt>
         <dd>
