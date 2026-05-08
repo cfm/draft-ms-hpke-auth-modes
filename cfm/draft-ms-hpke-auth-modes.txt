@@ -407,7 +407,7 @@ def HybridSetupR(enc, skR, skR_pq, pkR_pq, pkS, info):
    practices, a lack of direct parity with classical constructions, and
    a relative paucity of stable libraries and APIs [PQCodePkgs].
 
-   Developers looking to offer hybrid PQT encryption in their own
+   Developers looking to offer hybrid PQ/T encryption in their own
    applications, for reasons described for example in Section 2.1 of
    [RFC9370], can look to early-stage implementations of
    [I-D.draft-connolly-cfrg-xwing-kem-10], or may refer to the now-
@@ -430,9 +430,9 @@ def HybridSetupR(enc, skR, skR_pq, pkR_pq, pkS, info):
    Allowing application developers to deploy quantum-resistant
    encryption as a transitional measure without deprecating the
    classical authentication properties of their application provides a
-   path towards quantum readiness, similar in concept to [RFC8773] and
-   [RFC9257], where the introduction of a quantum-resistent PSK as a
-   transitional measure is also discussed.
+   path towards quantum readiness, similar in concept to Section 3 of
+   [RFC8773] and Section 5.1 of [RFC9257], which also discuss the
+   introduction of quantum-resistent PSK as a transitional measure.
 
 4.  Security Considerations
 
