@@ -24,6 +24,10 @@ venue:
   github: "cfm/draft-ms-hpke-auth-modes"
 
 author:
+  - fullname: Giulio Berra
+    role: editor
+    organization: Freedom of the Press Foundation
+    email: giulio@freedom.press
   - fullname: Cory Francis Myers
     role: editor
     organization: Freedom of the Press Foundation
@@ -32,10 +36,6 @@ author:
     role: editor
     organization: Freedom of the Press Foundation
     email: ro@freedom.press
-  - fullname: Giulio Berra
-    role: editor
-    organization: Freedom of the Press Foundation
-    email: giulio@freedom.press
 
 
 normative:
