@@ -92,27 +92,26 @@ informative:
 
 The standards-track {{!I-D.ietf-hpke-hpke}} supersedes the informational
 {{?RFC9180}}, omitting its authenticated modes `mode_auth` and `mode_auth_psk`.
-This document restores `mode_auth_psk` mode as a strict extension, and illustrates
-how the restored mode can be used with a post-quantum shared secret as the PSK
-by application developers seeking to achieve hybrid PQ/T confidentiality while
-transitioning to quantum-safe encryption, without deprecating the classical
-implicit authentication property on which many applications still rely.
+This document restores `mode_auth_psk` mode as a strict extension and
+illustrates how the restored mode can be used with a post-quantum "shared secret"
+as the PSK in order to achieve hybrid PQ/T confidentiality while transitioning
+to quantum-resistant encryption, without deprecating the classical implicit
+authentication on which many applications still rely.
 
-This extension requires only the
-addition of `AuthEncap()`/`AuthDecap()` to the DHKEM, the definition of four
-setup functions, and a change in `VerifyPSKInputs()`.  The extension does not
-alter the externally observable behavior of the existing HPKE modes standardized
-in {{!I-D.ietf-hpke-hpke}}.
-Although `AuthEncap()`/`AuthDecap()` reintroduce the functionality of `mode_auth`,
-the mode itself is not restored due to its inability to provide quantum safety.
+This extension requires only the addition of `AuthEncap()`/`AuthDecap()` to the
+DHKEM, the definition of four setup functions, and a change in
+`VerifyPSKInputs()`.  The extension does not alter the externally observable
+behavior of the existing HPKE modes standardized in {{!I-D.ietf-hpke-hpke}}.
+Although `AuthEncap()`/`AuthDecap()` reintroduce the functionality of
+`mode_auth`, the mode itself is not restored, since it cannot provide quantum
+resistance.
 
-The transitional nature of the AuthPSK construction and its security properties
-are discussed.
-Finally, the document illustrates how the restored mode can be used to provide
-ready-made KEM combiner-like functionality ({{!I-D.ounsworth-cfrg-kem-combiners}})
-without requiring downstream API users to manage their own encryption context.
-The use of this construction as a transitional step towards quantum readiness
-motivates this extension.
+This document discusses the transitional nature of the AuthPSK construction and
+its security properties as a transitional step towards quantum resistance.  In
+particular, this document illustrates how the restored `mode_auth_psk` can be
+used to provide ready-made KEM combiner-like functionality
+({{!I-D.ounsworth-cfrg-kem-combiners}}) without requiring downstream API users
+to manage their own encryption context.
 
 --- middle
 
@@ -120,41 +119,39 @@ motivates this extension.
 
 {{!I-D.ietf-hpke-hpke}} is the standards-track successor to the informational
 {{?RFC9180}} and omits the authenticated modes `mode_auth` and `mode_auth_psk`
-to simplify the standard.
-However, some applications make use of the type of implicit sender authentication
-those modes provide.
+to simplify the standard.  However, some applications make use of the type of
+implicit sender authentication provided by these modes.
 
-The normative portion of this document is small.  It restores
-`mode_auth_psk` as a strict extension to {{!I-D.ietf-hpke-hpke}}.
-This requires `AuthEncap()`/`AuthDecap()` from the DHKEM construction in
-{{?RFC9180}}, and a modified `VerifyPSKInputs()`. The externally observable
-behavior of existing HPKE modes is unchanged.
-`AuthEncap()` computes a static-static DH value `DH(skS, pkR)` alongside the
-ephemeral-static value and mixes both into the key derivation, binding the
-output to the sender's key pair.
+The normative portion of this document is small.  It restores `mode_auth_psk` as
+a strict extension to {{!I-D.ietf-hpke-hpke}}.  This requires
+`AuthEncap()`/`AuthDecap()` from the DHKEM construction in {{?RFC9180}}, and a
+modified `VerifyPSKInputs()`. The externally observable behavior of existing
+HPKE modes is unchanged.  `AuthEncap()` computes a static-static DH value
+`DH(skS, pkR)` alongside the ephemeral-static value and mixes both into the key
+derivation, binding the output to the sender's key pair.
 
 Although the functionality of `mode_auth` is re-introduced, the mode identifer
-itself, which relies solely on DHKEM, is not restored due to its inability to
-provide quantum-safe encryption. Instead, it is instead treated as a building
-block to `mode_auth_psk`, as seen in {{sec-dhakem}}.
+itself, which relies solely on DHKEM, is not restored, since it cannot provide
+quantum-resistant encryption. `mode_auth` is instead treated as a building block
+to `mode_auth_psk`, as seen in {{sec-dhakem}}.
 
-{{sec-authencap}} describes how the restored
-mode can be used to achieve hybrid PQ/T confidentiality as
-defined in {{Section 5 of ?RFC9794}} during the transition to quantum-safe encryption.
-{{sec-motivation}} discusses the transitional nature of this construction and reviews
-the guidance available to application developers looking to begin the transition to
-quantum-safe encryption with existing libraries and APIs.
+{{sec-authencap}} describes how the restored `mode_auth_psk` can be used to
+achieve hybrid PQ/T confidentiality as defined in {{Section 5 of ?RFC9794}}
+during the transition to quantum-resistant encryption.  {{sec-motivation}}
+discusses the transitional nature of this construction and reviews the guidance
+available to application developers looking to begin the transition to
+quantum-resistant encryption with existing libraries and APIs.
 
 To motivate the extension, {{sec-combiner}} discusses how the extension can be used
 as a type of black-box KEM combiner ({{!I-D.ounsworth-cfrg-kem-combiners}}), similar to
 the construction proposed in {{Alwen2023}}, to allow application developers to begin
-the transition to quantum-safe encryption via usable libraries and APIs.
+the transition to quantum-resistant encryption via usable libraries and APIs.
 
 # Conventions and Definitions
 {::boilerplate bcp14-tagged}
 
-Terms from {{I-D.ietf-hpke-hpke}} are used without redefinition; particular reference is
-made to the **DHKEM** construction {{Section 4.1 of ?RFC9180}}.
+Terms from {{I-D.ietf-hpke-hpke}} are used without redefinition; particular
+reference is made to the **DHKEM** construction {{Section 4.1 of ?RFC9180}}.
 The following additional term is used herein:
 
 - **AKEM:** a KEM whose encapsulation additionally takes the sender's static
@@ -183,15 +180,14 @@ The value `0x02` remains reserved.
 ## Exclusion of 0x02 `mode_auth` from Mode Identifiers
 
 Although restoring  the `AuthEncap()` and `AuthDecap()` functions would also
-allow for restoring `mode_auth`, this mode cannot offer quantum-safe encryption,
-and its identifier is therefore not reintroduced.
+allow for restoring `mode_auth`, this mode cannot offer quantum-resistant
+encryption, and its identifier is therefore not reintroduced.
 
 ## DHKEM Extension: `AuthEncap()` and `AuthDecap()` {#sec-authencap}
 
 The following two functions are added to the DHKEM, extending it to an AKEM
-(DHAKEM).
-They are reproduced verbatim from {{Section 4.1 of ?RFC9180}}. All helper
-functions (`GenerateKeyPair`, `DH`, `SerializePublicKey`,
+(DHAKEM).  They are reproduced verbatim from {{Section 4.1 of ?RFC9180}}. All
+helper functions (`GenerateKeyPair`, `DH`, `SerializePublicKey`,
 `DeserializePublicKey`, `ExtractAndExpand`) are as defined in
 {{!I-D.ietf-hpke-hpke}}.
 
@@ -230,8 +226,8 @@ see {{sec-setup}} for integration of a pre-shared key.
 ## `VerifyPSKInputs`
 
 The `VerifyPSKInputs()` function defined in {{Section 5.1 of ?RFC9180}} and
-{{!I-D.ietf-hpke-hpke}} is extended to handle the two new modes. The updated
-function replaces the original:
+{{!I-D.ietf-hpke-hpke}} is extended to handle the reintroduced `mode_auth_psk`.
+The updated function replaces the original:
 
 ~~~
 def VerifyPSKInputs(mode, psk, psk_id):
@@ -288,8 +284,8 @@ Key generation follows `GenerateKeyPair()` from {{I-D.ietf-hpke-hpke}}.
 As in {{?RFC9180}}, both parties are assumped to have been provisioned with the
 PSK value `psk` and another byte string `psk_id`.
 
-This mode SHOULD be used with a quantum-safe PSK value as described below in
-order to offer hybrid confidentiality properties.
+This mode SHOULD be used with a quantum-resistant PSK value as described below
+in order to offer hybrid PQ/T confidentiality properties.
 
 ### PQ/T Hybrid Construction {#sec-hybrid}
 
@@ -334,28 +330,28 @@ uniform randomness).
 
 ### AKEM/PQ KEM "Combiner" (Informative) {#sec-combiner}
 
-Using `mode_auth_psk` with the shared secret from a PQ-KEM as the provided "psk"
-value allows application developers to provide hybrid-transitional security properties
-using ready-made libraries and APIs. Although not a true pre-shared key, the terminology
-from similar work by {{Alwen2023}} ("pskAPKE") is retained.
+Using `mode_auth_psk` with the shared secret from a PQ-KEM as the provided
+"`psk`" value allows application developers to provide hybrid PQ/T security
+properties using ready-made libraries and APIs. Although this `psk` value is not
+a true pre-shared key, this document adopts the `pskAPKE` terminology from
+{{Alwen2023}}.
 
 The result is a KEM combiner-style construction {{!I-D.ounsworth-cfrg-kem-combiners}}
 that provides hybrid PQ/T confidentiality and classical authentication, without requiring
-developers to manage their own encryption context, a frequent source of developer error
+developers to manage their own encryption context---a frequent source of developer error
 and a motivating factor for the API design choices of {{?RFC9180}}.
 
-In addition to the keypair specified in {{sec-setup}}, the receiver holds an additional
-post-quantim keypair, (`skR_pq`, `pkR_pq`).
-Prior to setting up an HPKE encryption context (either via `Setup` or via a single-shot
-API), the sender encapsulates a PQ-KEM to the receiver's PQ public key `pkR_pq`, using
-the resulting shared secret `ss_pq` as a "PSK", and a static identifier as the PSK
-identifier.
-The ciphertext encapsulation of `ss_pq`, `enc_pq`, is included in `info` to
-bind it to the key schedule.
+In addition to the keypair specified in {{sec-setup}}, the receiver holds an
+additional post-quantum keypair, (`skR_pq`, `pkR_pq`).  Prior to setting up an
+HPKE encryption context (either via `Setup` or via a single-shot API), the
+sender uses receiver's PQ public key `pkR_pq` to generate a shared secret and
+its encapsulation (`ss_pq`, `enc_pq`), and uses `ss_pq` as the `psk` and a
+static identifier as the PSK identifier.  The ciphertext encapsulation of
+`ss_pq`, `enc_pq`, is included in `info` to bind it to the key schedule.
 
 An example construction is provided below, with reference to the following terms:
 
-- **PQ-KEM:** a post-quantum KEM, e.g., ML-KEM {{FIPS203}} or an
+- `PQKEM`: a post-quantum KEM, e.g., ML-KEM {{FIPS203}} or an
   algorithm from {{?I-D.ietf-hpke-pq}}.
 - `PQKEM.Encap(pkR_pq)`: PQ-KEM encapsulation; returns `(enc_pq, ss_pq)`.
 - `PQKEM.Decap(enc_pq, skR_pq)`: PQ-KEM decapsulation; returns `ss_pq`.
@@ -373,10 +369,10 @@ def HybridSetupR(enc, skR, skR_pq, pkR_pq, pkS, info):
   return SetupAuthPSKR(enc_dh, skR, concat(info, enc_pq), ss_pq, enc_pq, pkS)
 ~~~
 
-**Classical (implicit) sender authentication:** Only classical sender
-authentication is provided; in contrast to {{sec-hybrid}}, the "psk" value
-provides no sender authentication, as it is constructed rather than pre-shared.
-This limitation is assessed in {{sec-motivation}}.
+**Classical (implicit) sender authentication:** This construction provides only
+classical sender authentication is provided.  In contrast to {{sec-hybrid}},
+this "`psk`" value provides no sender authentication, as it is constructed
+rather than pre-shared.  This limitation is assessed in {{sec-motivation}}.
 
 The `info` parameter will exceed 64 bytes. Implementors must ensure their choice of
 algorithms and underlying implementation can support parameters of this length.
@@ -391,41 +387,42 @@ generated for each encapsulation; reuse of a prior `enc_pq` is prohibited. The
 `(AKEM_ID, KDF_ID, AEAD_ID)`; the PQ-KEM algorithm identity should be conveyed
 via application-layer framing when multiple PQ-KEM algorithms are supported.
 
-Note that {{Alwen2023}}
-describes a related hybrid construction in which a PQ *AKEM* (rather than a
-plain KEM) is used to generate the PSK, which would additionally provide
-post-quantum sender authentication; that stronger construction is outside the
-scope of this document.
+Note that {{Alwen2023}} describes a related hybrid construction in which a PQ
+*AKEM* (rather than an unauthenticated KEM) is used to generate the PSK, which
+would additionally provide post-quantum sender authentication; that stronger
+construction is outside the scope of this document.
 
 ## Motivation (Informative) {#sec-motivation}
 
 Application developers are in a bind: though they may be aware of advice to
-implement quantum-safe encryption on an accelerated timeline, they may encounter rapidly-
-evolving guidance on best practices, a lack of direct parity with classical constructions,
-and a relative paucity of stable libraries and APIs {{PQCodePkgs}}.
+implement quantum-resistant encryption on an accelerated timeline, they may
+encounter rapidly-evolving guidance on best practices, a lack of direct parity
+with classical constructions, and a relative paucity of stable libraries and
+APIs {{PQCodePkgs}}.
 
-Developers looking to offer classical/quantum-safe (hybrid) encryption in their
-own applications, for reasons described for example in {{Section 2.1 of ?RFC9370}},
-can look to early-stage implementations of {{?I-D.draft-connolly-cfrg-xwing-kem-10}},
-or may refer to now-expired {{!I-D.ounsworth-cfrg-kem-combiners}}, but will need to
+Developers looking to offer hybrid PQ/T encryption in their own applications,
+for reasons described for example in {{Section 2.1 of ?RFC9370}}, can look to
+early-stage implementations of {{?I-D.draft-connolly-cfrg-xwing-kem-10}}, or may
+refer to the now-expired {{!I-D.ounsworth-cfrg-kem-combiners}}, but will need to
 manage their own combiner implementation.
 
-On the other hand, production-ready quantum-safe authentication is still maturing.
-Standardized schemes offer non-repudiable, signature-based authentication, which is
-not a direct replacement for the type of DH-based implicit authentication described
-in the `auth` modes of {{?RFC9180}} or this document.
+On the other hand, production-ready quantum-resistant authentication is still
+maturing.  Standardized schemes offer non-repudiable, signature-based
+authentication, which is not a direct replacement for the type of DH-based
+implicit authentication described in the authenticated modes of {{?RFC9180}} or
+this document.
 
-Although the property of hybrid encryption with classical authentication is not as
-straightforward to communicate as unauthenticated hybrid encryption that forgoes implict
-authentication entirely, protocols such as Noise IK, as used in {{Wireguard2020}}, indicate
-its continued real-world usage while quantum-safe authentication methods become
-more available.
+Although the strategy of hybrid encryption with classical authentication is not
+as straightforward to communicate as unauthenticated hybrid encryption that
+forgoes implict authentication entirely, protocols such as Noise IK, as used in
+{{Wireguard2020}}, indicate that this strategy has real-world uses until
+quantum-resistant authentication methods become more available.
 
-Allowing application developers to deploy quantum-resistent encryption as
-a transitional measure without deprecating the classical authentication properties of
-their application provides a path towards quantum readiness, similar in concept to
-{{?RFC8773}} and {{?RFC9257}}, where the introduction of a quantum-resistent PSK as a
-transitional measure is also discussed.
+Allowing application developers to deploy quantum-resistant encryption as a
+transitional measure without deprecating the classical authentication properties
+of their application provides a path towards quantum readiness, similar in
+concept to {{?RFC8773}} and {{?RFC9257}}, where the introduction of a
+quantum-resistent PSK as a transitional measure is also discussed.
 
 # Security Considerations {#sec-security}
 
