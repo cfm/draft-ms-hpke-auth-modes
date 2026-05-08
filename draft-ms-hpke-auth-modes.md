@@ -421,8 +421,8 @@ quantum-resistant authentication methods become more available.
 Allowing application developers to deploy quantum-resistant encryption as a
 transitional measure without deprecating the classical authentication properties
 of their application provides a path towards quantum readiness, similar in
-concept to {{?RFC8773}} and {{?RFC9257}}, where the introduction of a
-quantum-resistent PSK as a transitional measure is also discussed.
+concept to {{Section 3 of ?RFC8773}} and {{Section 5.1 of ?RFC9257}}, which also
+discuss the introduction of quantum-resistent PSK as a transitional measure.
 
 # Security Considerations {#sec-security}
 
