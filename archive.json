@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-05-05T00:45:34.204572+00:00",
+  "timestamp": "2026-05-10T00:51:49.130314+00:00",
   "repo": "cfm/draft-ms-hpke-auth-modes",
   "labels": [
     {
@@ -725,26 +725,129 @@
       "id": "PR_kwDORjRsxc7XP7VE",
       "title": "Revisions: AuthPSK focus, split out `pskAPKE` from extension and treat as informative.",
       "url": "https://github.com/cfm/draft-ms-hpke-auth-modes/pull/19",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "rocodes",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "\r\n- Drop `mode_auth` with explanation that it cannot be constructed with quantum safety; treat it like building block to auth_psk\r\n- Treat `mode_auth_psk` with a \"true\" PSK/pq shared secret, as the focus of the extension\r\n  - Informatively offer `pskAPKE`, but drop the algorithms/parameters since it's just an example; include authentication caveats\r\n  - Drop `mode_auth` references, treat identifier as reserved\r\n- Add Motivation section describing the use-case, and add references to related work mentioning PSK for quantum-safe transition\r\n- Fixup a few small issues (info param composition, adjust param ordering)\r\n- Add @lsd-cat as an author\r\n\r\n",
       "createdAt": "2026-04-30T20:12:38Z",
-      "updatedAt": "2026-05-04T18:41:10Z",
+      "updatedAt": "2026-05-07T04:14:35Z",
       "baseRepository": "cfm/draft-ms-hpke-auth-modes",
       "baseRefName": "main",
       "baseRefOid": "247fca56b9bf106b6bdb1913b4b0c7a85cfde81b",
       "headRepository": "cfm/draft-ms-hpke-auth-modes",
       "headRefName": "rework-for-authpsk-focus",
       "headRefOid": "4a877871e2b74b21ebe5c013be26b96230b931a2",
+      "closedAt": "2026-05-07T04:14:29Z",
+      "mergedAt": "2026-05-07T04:14:29Z",
+      "mergedBy": "cfm",
+      "mergeCommit": {
+        "oid": "c6250e0c61458e4191314034d4b886134c27725a"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDORjRsxc78y3M9",
+          "commit": {
+            "abbreviatedOid": "4a87787"
+          },
+          "author": "cfm",
+          "authorAssociation": "OWNER",
+          "state": "APPROVED",
+          "body": "I like this framing a lot.  Thanks, @rocodes and @lsd-cat!",
+          "createdAt": "2026-05-07T04:14:15Z",
+          "updatedAt": "2026-05-07T04:14:15Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 20,
+      "id": "PR_kwDORjRsxc7ZWgAb",
+      "title": "prose edit",
+      "url": "https://github.com/cfm/draft-ms-hpke-auth-modes/pull/20",
+      "state": "OPEN",
+      "author": "cfm",
+      "authorAssociation": "OWNER",
+      "assignees": [
+        "cfm"
+      ],
+      "labels": [],
+      "body": "I reflowed paragraphs, so I highly recommend the \"rich\" diff.\r\n\r\nOne FIXME inline, which I'll flag in a thread.",
+      "createdAt": "2026-05-08T00:36:35Z",
+      "updatedAt": "2026-05-08T19:27:25Z",
+      "baseRepository": "cfm/draft-ms-hpke-auth-modes",
+      "baseRefName": "main",
+      "baseRefOid": "c6250e0c61458e4191314034d4b886134c27725a",
+      "headRepository": "cfm/draft-ms-hpke-auth-modes",
+      "headRefName": "cfm",
+      "headRefOid": "db19a382aa34bf42a098c7b601c5a9ebef478831",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDORjRsxc79PEIu",
+          "commit": {
+            "abbreviatedOid": "56c7394"
+          },
+          "author": "cfm",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-05-08T00:37:23Z",
+          "updatedAt": "2026-05-08T00:37:24Z",
+          "comments": [
+            {
+              "originalPosition": 206,
+              "body": "This doesn't quite parse: is there a word missing?",
+              "createdAt": "2026-05-08T00:37:23Z",
+              "updatedAt": "2026-05-08T00:37:24Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDORjRsxc79j-0B",
+          "commit": {
+            "abbreviatedOid": "db19a38"
+          },
+          "author": "rocodes",
+          "authorAssociation": "COLLABORATOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "thank you! left a couple small comments",
+          "createdAt": "2026-05-08T17:25:27Z",
+          "updatedAt": "2026-05-08T17:50:58Z",
+          "comments": [
+            {
+              "originalPosition": 186,
+              "body": "Although this `psk` value is **not** a true pre-shared key, .... \n\n",
+              "createdAt": "2026-05-08T17:25:27Z",
+              "updatedAt": "2026-05-08T17:50:58Z"
+            },
+            {
+              "originalPosition": 206,
+              "body": "\"Prior to setting up an HPKE encryption context (either via `Setup` or via a single-shot API), the sender uses receiver's PQ public key `pkR_pq` to generate a shared secret and its encapsulation (`ss_pq`, `enc_pq`), and uses `ss_pq` as the `psk` and a static identifier as the PSK identifier. \"\n\n",
+              "createdAt": "2026-05-08T17:47:04Z",
+              "updatedAt": "2026-05-08T17:50:58Z"
+            },
+            {
+              "originalPosition": 228,
+              "body": "nit- Double-quotes around \"psk\" was intentional even if you want to format it monospaced; it's not a true psk and I think that it explains the second half of the sentence, although the prior mention is more important",
+              "createdAt": "2026-05-08T17:48:33Z",
+              "updatedAt": "2026-05-08T17:50:58Z"
+            },
+            {
+              "originalPosition": 184,
+              "body": "Here I'd keep the double-quotes around \"psk\" even if it's monospaced, because it indicates that the term \"psk\" is a bit of an abuse but we are aware, as we then justify.",
+              "createdAt": "2026-05-08T17:50:19Z",
+              "updatedAt": "2026-05-08T17:50:58Z"
+            }
+          ]
+        }
+      ]
     }
   ]
 }
