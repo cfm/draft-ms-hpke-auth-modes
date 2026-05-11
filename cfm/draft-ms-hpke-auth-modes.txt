@@ -394,7 +394,7 @@ def HybridSetupR(enc, skR, skR_pq, pkR_pq, pkS, info):
    multiple PQ-KEM algorithms are supported.
 
    Note that [Alwen2023] describes a related hybrid construction in
-   which a PQ _AKEM_ (rather than an authenticated KEM) is used to
+   which a PQ _AKEM_ (rather than an unauthenticated KEM) is used to
    generate the PSK, which would additionally provide post-quantum
    sender authentication; that stronger construction is outside the
    scope of this document.
