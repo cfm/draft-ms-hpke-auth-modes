@@ -22,9 +22,9 @@ DHKEM, the definition of four setup functions, and a change in
 behavior of the existing HPKE modes standardized in  .
 Although  AuthEncap() / AuthDecap()  reintroduce the functionality of
  mode_auth , the mode itself is not restored, since it cannot provide quantum
-resilience. 
+resistance. 
        This document discusses the transitional nature of the AuthPSK construction and
-its security properties as a transitional step towards quantum resilience.  In
+its security properties as a transitional step towards quantum resistance.  In
 particular, this document illustrates how the restored  mode_auth_psk  can be
 used to provide ready-made KEM combiner-like functionality
 ( ) without requiring downstream API users
@@ -1129,9 +1129,9 @@ DHKEM, the definition of four setup functions, and a change in
 behavior of the existing HPKE modes standardized in <span>[<a href="#I-D.ietf-hpke-hpke" class="cite xref">I-D.ietf-hpke-hpke</a>]</span>.
 Although <code>AuthEncap()</code>/<code>AuthDecap()</code> reintroduce the functionality of
 <code>mode_auth</code>, the mode itself is not restored, since it cannot provide quantum
-resilience.<a href="#section-abstract-2" class="pilcrow">¶</a></p>
+resistance.<a href="#section-abstract-2" class="pilcrow">¶</a></p>
 <p id="section-abstract-3">This document discusses the transitional nature of the AuthPSK construction and
-its security properties as a transitional step towards quantum resilience.  In
+its security properties as a transitional step towards quantum resistance.  In
 particular, this document illustrates how the restored <code>mode_auth_psk</code> can be
 used to provide ready-made KEM combiner-like functionality
 (<span>[<a href="#I-D.ounsworth-cfrg-kem-combiners" class="cite xref">I-D.ounsworth-cfrg-kem-combiners</a>]</span>) without requiring downstream API users

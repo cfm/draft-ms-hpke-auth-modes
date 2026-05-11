@@ -29,11 +29,11 @@ Abstract
    observable behavior of the existing HPKE modes standardized in
    [I-D.ietf-hpke-hpke].  Although AuthEncap()/AuthDecap() reintroduce
    the functionality of mode_auth, the mode itself is not restored,
-   since it cannot provide quantum resilience.
+   since it cannot provide quantum resistance.
 
    This document discusses the transitional nature of the AuthPSK
    construction and its security properties as a transitional step
-   towards quantum resilience.  In particular, this document illustrates
+   towards quantum resistance.  In particular, this document illustrates
    how the restored mode_auth_psk can be used to provide ready-made KEM
    combiner-like functionality ([I-D.ounsworth-cfrg-kem-combiners])
    without requiring downstream API users to manage their own encryption
