@@ -5,8 +5,8 @@
 Network Working Group                                      G. Berra, Ed.
 Internet-Draft                                          C. F. Myers, Ed.
 Intended status: Standards Track                           R. Shane, Ed.
-Expires: 9 November 2026                 Freedom of the Press Foundation
-                                                              8 May 2026
+Expires: 12 November 2026                Freedom of the Press Foundation
+                                                             11 May 2026
 
 
                       Authenticated Modes for HPKE
@@ -64,7 +64,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 9 November 2026.
+   This Internet-Draft will expire on 12 November 2026.
 
 Copyright Notice
 
@@ -327,10 +327,10 @@ Table of Contents
 3.7.2.  AKEM/PQ KEM "Combiner" (Informative)
 
    Using mode_auth_psk with the shared secret from a PQ-KEM as the
-   provided psk value allows application developers to provide hybrid
+   provided "psk" value allows application developers to provide hybrid
    PQ/T security properties using ready-made libraries and APIs.
-   Although this psk value is a true pre-shared key, this document
-   adopts the pskAPKE terminology from [Alwen2023]
+   Although this psk value is not a true pre-shared key, this document
+   adopts the pskAPKE terminology from [Alwen2023].
 
    The result is a KEM combiner-style construction
    [I-D.ounsworth-cfrg-kem-combiners] that provides hybrid PQ/T
@@ -342,11 +342,11 @@ Table of Contents
    In addition to the keypair specified in Section 3.5, the receiver
    holds an additional post-quantum keypair, (skR_pq, pkR_pq).  Prior to
    setting up an HPKE encryption context (either via Setup or via a
-   single-shot API), the sender encapsulates a PQ-KEM to the receiver's
-   PQ public key pkR_pq, using the resulting shared secret ss_pq as the
-   psk, and a static identifier as the PSK identifier.  The ciphertext
-   encapsulation of ss_pq, enc_pq, is included in info to bind it to the
-   key schedule.
+   single-shot API), the sender uses receiver's PQ public key pkR_pq to
+   generate a shared secret and its encapsulation (ss_pq, enc_pq), and
+   uses ss_pq as the psk and a static identifier as the PSK identifier.
+   The ciphertext encapsulation of ss_pq, enc_pq, is included in info to
+   bind it to the key schedule.
 
    An example construction is provided below, with reference to the
    following terms:
@@ -374,7 +374,7 @@ def HybridSetupR(enc, skR, skR_pq, pkR_pq, pkS, info):
 
    *Classical (implicit) sender authentication:* This construction
    provides only classical sender authentication is provided.  In
-   contrast to Section 3.7.1, the psk value provides no sender
+   contrast to Section 3.7.1, this "psk" value provides no sender
    authentication, as it is constructed rather than pre-shared.  This
    limitation is assessed in Section 3.8.
 
