@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-05-10T00:51:49.130314+00:00",
+  "timestamp": "2026-05-12T00:46:34.305882+00:00",
   "repo": "cfm/draft-ms-hpke-auth-modes",
   "labels": [
     {
@@ -767,7 +767,7 @@
       "id": "PR_kwDORjRsxc7ZWgAb",
       "title": "prose edit",
       "url": "https://github.com/cfm/draft-ms-hpke-auth-modes/pull/20",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "cfm",
       "authorAssociation": "OWNER",
       "assignees": [
@@ -776,17 +776,19 @@
       "labels": [],
       "body": "I reflowed paragraphs, so I highly recommend the \"rich\" diff.\r\n\r\nOne FIXME inline, which I'll flag in a thread.",
       "createdAt": "2026-05-08T00:36:35Z",
-      "updatedAt": "2026-05-08T19:27:25Z",
+      "updatedAt": "2026-05-11T23:36:02Z",
       "baseRepository": "cfm/draft-ms-hpke-auth-modes",
       "baseRefName": "main",
       "baseRefOid": "c6250e0c61458e4191314034d4b886134c27725a",
       "headRepository": "cfm/draft-ms-hpke-auth-modes",
       "headRefName": "cfm",
-      "headRefOid": "db19a382aa34bf42a098c7b601c5a9ebef478831",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "1e1fc2f3c1b846c20901a8e42054ac6df75510cd",
+      "closedAt": "2026-05-11T23:36:02Z",
+      "mergedAt": "2026-05-11T23:36:02Z",
+      "mergedBy": "cfm",
+      "mergeCommit": {
+        "oid": "fff9a5cdf9d22d6b86ff7947d70b574409cb43eb"
+      },
       "comments": [],
       "reviews": [
         {
@@ -844,6 +846,66 @@
               "body": "Here I'd keep the double-quotes around \"psk\" even if it's monospaced, because it indicates that the term \"psk\" is a bit of an abuse but we are aware, as we then justify.",
               "createdAt": "2026-05-08T17:50:19Z",
               "updatedAt": "2026-05-08T17:50:58Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDORjRsxc7-Zqkd",
+          "commit": {
+            "abbreviatedOid": "56c7394"
+          },
+          "author": "cfm",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-05-11T23:35:10Z",
+          "updatedAt": "2026-05-11T23:35:10Z",
+          "comments": [
+            {
+              "originalPosition": 206,
+              "body": "Thanks!  Squashed in 1ab8471382a53e6b4e6d5625123f125a0e6895dd.",
+              "createdAt": "2026-05-11T23:35:10Z",
+              "updatedAt": "2026-05-11T23:35:10Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDORjRsxc7-Zqv_",
+          "commit": {
+            "abbreviatedOid": "db19a38"
+          },
+          "author": "cfm",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-05-11T23:35:20Z",
+          "updatedAt": "2026-05-11T23:35:20Z",
+          "comments": [
+            {
+              "originalPosition": 186,
+              "body": "Oops; thanks for catching this!  Squashed in 1ab8471382a53e6b4e6d5625123f125a0e6895dd.",
+              "createdAt": "2026-05-11T23:35:20Z",
+              "updatedAt": "2026-05-11T23:35:20Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDORjRsxc7-Zq-K",
+          "commit": {
+            "abbreviatedOid": "db19a38"
+          },
+          "author": "cfm",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-05-11T23:35:32Z",
+          "updatedAt": "2026-05-11T23:35:32Z",
+          "comments": [
+            {
+              "originalPosition": 228,
+              "body": "Totally.  I'm torn about this because I think the air quotes are both a little informal and a little inaccurate: it *is* the `psk` value; it's just a \"PSK\" rather than a PSK.  But I've split the difference in 1ab8471382a53e6b4e6d5625123f125a0e6895dd; let's see what feedback we get.",
+              "createdAt": "2026-05-11T23:35:32Z",
+              "updatedAt": "2026-05-11T23:35:33Z"
             }
           ]
         }
