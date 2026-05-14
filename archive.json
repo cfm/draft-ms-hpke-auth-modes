@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-05-12T00:46:34.305882+00:00",
+  "timestamp": "2026-05-14T00:53:42.179730+00:00",
   "repo": "cfm/draft-ms-hpke-auth-modes",
   "labels": [
     {
@@ -226,25 +226,41 @@
       "labels": [],
       "body": "I am relatively certain that such a thing would never be specified (because more-efficient-yet-less-generic alternatives will certainly arise before the need), but it is possible to generically construct an AuthKEM from an IND-CCA2 KEM and an EUF-CMA signature scheme.\n\nIn short: Public/Private keys are concatenated.\n\nEncaps from sender S to the recipient R works as follows:\n\n(c,k') <- KEM.Encaps(kemPkR)\ns <- Signature.Sign(sigSkS, (c, idR))\nk <- KDF(k', (c,s,idS))\noutput ciphertext (c,s) and shared key k\n\nDecaps:\n\nk' <- KEM.Decaps(kemSkR, c)\nif k' is failure: output failure\nv <- Signature.Verify(sigPkS, (c, idR), s)\nif not v: output failure\nk <- KDF(k', (c,s,idS))\noutput shared key k\n\n\nSome notes:\n\n- This scheme is sometimes explicitly rejecting and sometimes quiet, depending on the KEM, signature scheme and messages, but see below for modifications.\n  - In the quiet case, HPKE will reject messages at the AEAD layer.\n- idX is the \"identity\" of X, which can be the concatenated public keys in case those are unique. They ensure that the ciphertext is bound to a recipient (for integrity) and that the session key is bound to a sender (for confidentiality).\n- The transcript hashing (inclusion of (c,s) in KDF) is partially optional (except for some modifications below), but I highly recommend it. It provides a certain safeguard against weak forgeries of c and s. If convenient, (c,s) may be pre-hashed using any collision resistant hash function. c and s never have to be stored in memory at the same time: c can be hashed and then sent/discarded before s is created/read.\n- Hybrid KEMs and signatures can be freely used.\n\nSpecial modifications:\n\n- To get an explicitly rejecting AuthKEM:\n  - The signature scheme has to be SUF-CMA.\n  - The KEM has to be explicitly rejecting.\n    - Alternative: Include KDF(k', \"\") in the input to the signature for key confirmation, which makes any quiet KEM explicitly rejecting.\n\n- To get a guaranteed quiet AuthKEM:\n  - The KEM has to be quiet.\n    - Alternative: Use a secret fallback key k' as part of kemSk, although beware possible timing side channels!\n  - The signature verification and KEM decapsulation SHOULD run in constant time irrespective of failure.\n  - Remove all lines outputting failure and make v part of the KDF input. For Encaps, define v <- true",
       "createdAt": "2026-03-18T10:41:36Z",
-      "updatedAt": "2026-03-18T10:41:36Z",
+      "updatedAt": "2026-05-12T19:26:57Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "rocodes",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Thank you for taking the time to write up this proposal, and apologies for the tardy reply.\n\nIn our case, implicit authentication rather than signature-based authentication was the desirable property we wanted to retain; our motivation for proposing this draft is due to our use of HPKE in [securedrop-protocol](https://github.com/freedomofpress/securedrop-protocol), a whistleblowing protocol between anonymous sources and journalists, where we hope to retain a level of deniability similar conceptually to x3dh or noise IK. So a stronger form of sender authentication in AuthKem would work against us. If it is independently desirable we can document it, but it would not be something we would rely on ourselves. For now in the document we have noted the AuthKem construction found in https://eprint.iacr.org/2023/1480.",
+          "createdAt": "2026-05-12T19:26:57Z",
+          "updatedAt": "2026-05-12T19:26:57Z"
+        }
+      ]
     },
     {
       "number": 14,
       "id": "I_kwDORjRsxc71xJ-D",
       "title": "emphasize transitional properties: PQ/T confidentiality, implicit traditional authentication",
       "url": "https://github.com/cfm/draft-ms-hpke-auth-modes/issues/14",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "cfm",
       "authorAssociation": "OWNER",
       "assignees": [],
       "labels": [],
       "body": "Minor suggestions (put implicit sender auth mention first since it applies to both modes; slight shortening of rest of text), plus suggesting a sentence alluding to a justification for the mixed modes (transitional/deployment readiness) instead of \"sufficient for many\". (Not attached to the wording, just an idea):\r\n\r\n> On top of these restored modes, this document defines DH-AKEM: named usage profiles of `mode_auth` and `mode_auth_psk` that expose the full HPKE context API (`Seal`, `Open`, and `Export`) to provide implicit sender authentication in the classical setting. When `mode_auth_psk` is used with the shared secret of a post-quantum KEM (PQ-KEM) encapsulation as the PSK, the construction provides hybrid PQ/T confidentiality, offering readily-deployable transitional security with off-the-shelf primitives.\r\n\r\n_Originally posted by @rocodes in https://github.com/cfm/draft-ms-hpke-auth-modes/pull/1#discussion_r2916205665_\r\n            ",
       "createdAt": "2026-03-23T19:47:03Z",
-      "updatedAt": "2026-03-23T19:47:03Z",
-      "closedAt": null,
-      "comments": []
+      "updatedAt": "2026-05-12T14:20:01Z",
+      "closedAt": "2026-05-12T14:20:01Z",
+      "comments": [
+        {
+          "author": "rocodes",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Addressed in #19",
+          "createdAt": "2026-05-12T14:20:01Z",
+          "updatedAt": "2026-05-12T14:20:01Z"
+        }
+      ]
     },
     {
       "number": 15,
@@ -282,15 +298,15 @@
       "id": "I_kwDORjRsxc71xNU5",
       "title": "call profiles \"transitional\" rather than \"hybrid\"",
       "url": "https://github.com/cfm/draft-ms-hpke-auth-modes/issues/16",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "cfm",
       "authorAssociation": "OWNER",
       "assignees": [],
       "labels": [],
       "body": "(Again, not to nit, but: would \"DH-AKEM-Transitional\" avoid overloading the term \"hybrid\" and emphasize the use case?)\r\n\r\n_Originally posted by @rocodes in https://github.com/cfm/draft-ms-hpke-auth-modes/pull/1#discussion_r2916211482_\r\n            ",
       "createdAt": "2026-03-23T19:49:20Z",
-      "updatedAt": "2026-03-31T03:07:10Z",
-      "closedAt": null,
+      "updatedAt": "2026-05-12T14:22:16Z",
+      "closedAt": "2026-05-12T14:22:16Z",
       "comments": [
         {
           "author": "rocodes",
@@ -298,6 +314,13 @@
           "body": "If this works for you @cfm, I'll prepare a small PR, just with reference to the AuthPSK with PQ secret sub-case. (Can also do in conjunction with another change, such as generalizing the example application https://github.com/cfm/draft-ms-hpke-auth-modes/issues/15#issuecomment-4159429174)",
           "createdAt": "2026-03-31T03:05:51Z",
           "updatedAt": "2026-03-31T03:07:10Z"
+        },
+        {
+          "author": "rocodes",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I think we can consider this closed via #19, where one profile was dropped and the other was reworked",
+          "createdAt": "2026-05-12T14:22:16Z",
+          "updatedAt": "2026-05-12T14:22:16Z"
         }
       ]
     },
@@ -330,16 +353,24 @@
       "id": "I_kwDORjRsxc743uU2",
       "title": "Mention deniability / more strongly mention implicit authentication",
       "url": "https://github.com/cfm/draft-ms-hpke-auth-modes/issues/18",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "rocodes",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "The word \"deniable\"/\"deniability\" should probably appear in the draft (possibly where KCI is mentioned?), because part of the purpose of preserving the auth and authpsk modes despite the KCI tradeoff is to allow for implicit authentication/deniability, and that informs use cases for this draft\n\nRelated: #17 ",
       "createdAt": "2026-03-31T03:05:18Z",
-      "updatedAt": "2026-03-31T03:05:18Z",
-      "closedAt": null,
-      "comments": []
+      "updatedAt": "2026-05-12T14:19:35Z",
+      "closedAt": "2026-05-12T14:19:34Z",
+      "comments": [
+        {
+          "author": "rocodes",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Addressed in #19 ",
+          "createdAt": "2026-05-12T14:19:35Z",
+          "updatedAt": "2026-05-12T14:19:35Z"
+        }
+      ]
     }
   ],
   "pulls": [
