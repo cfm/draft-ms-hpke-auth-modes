@@ -25,15 +25,12 @@ venue:
 
 author:
   - fullname: Giulio Berra
-    role: editor
     organization: Freedom of the Press Foundation
     email: giulio@freedom.press
   - fullname: Cory Francis Myers
-    role: editor
     organization: Freedom of the Press Foundation
     email: cfm@acm.org
   - fullname: Rowen Shane
-    role: editor
     organization: Freedom of the Press Foundation
     email: ro@freedom.press
 
