@@ -5,8 +5,8 @@
 Network Working Group                                      G. Berra, Ed.
 Internet-Draft                                          C. F. Myers, Ed.
 Intended status: Standards Track                           R. Shane, Ed.
-Expires: 12 November 2026                Freedom of the Press Foundation
-                                                             11 May 2026
+Expires: 17 November 2026                Freedom of the Press Foundation
+                                                             16 May 2026
 
 
                       Authenticated Modes for HPKE
@@ -64,7 +64,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 12 November 2026.
+   This Internet-Draft will expire on 17 November 2026.
 
 Copyright Notice
 
@@ -290,7 +290,7 @@ Table of Contents
      enc_dh, ctx = SetupAuthPSKS(pkR, info, psk, psk_id, skS)
      return enc_dh, ctx
 
-   def HybridSetupR(enc, skR, pkS, info, psk, psk):
+   def HybridSetupR(enc, skR, pkS, info, psk, psk_id):
      return SetupAuthPSKR(enc_dh, skR, info, psk, psk_id, pkS)
 
    The suite_id in the HPKE key schedule reflects only the ciphersuite
