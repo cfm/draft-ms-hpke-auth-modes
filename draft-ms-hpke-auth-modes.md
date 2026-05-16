@@ -294,7 +294,7 @@ def HybridSetupS(pkR, skS, info, psk, psk_id):
   enc_dh, ctx = SetupAuthPSKS(pkR, info, psk, psk_id, skS)
   return enc_dh, ctx
 
-def HybridSetupR(enc, skR, pkS, info, psk, psk):
+def HybridSetupR(enc, skR, pkS, info, psk, psk_id):
   return SetupAuthPSKR(enc_dh, skR, info, psk, psk_id, pkS)
 ~~~
 
